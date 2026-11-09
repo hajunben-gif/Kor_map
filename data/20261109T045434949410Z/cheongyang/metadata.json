@@ -1,0 +1,29 @@
+{
+  "region": "청양군",
+  "request_started_at_utc": "2026-11-09T04:55:44.536465+00:00",
+  "extracted_at_utc": "2026-11-09T04:59:04.557836+00:00",
+  "source": "https://www.openstreetmap.org",
+  "license": "ODbL 1.0",
+  "boundary": {
+    "type": "Nominatim administrative relation",
+    "osm_id": 7619553,
+    "display_name": "Cheongyang-gun, South Chungcheong, South Korea"
+  },
+  "crs": "epsg:4326",
+  "length_unit": "metre",
+  "network_type": "drive",
+  "retain_all": true,
+  "simplify": true,
+  "truncate_by_edge": false,
+  "osmnx_version": "2.1.1",
+  "overpass_url": "https://overpass-api.de/api",
+  "temporal_note": "Extraction time, not a guaranteed historical OSM snapshot; cache may predate this run.",
+  "statistics": {
+    "nodes": 2510,
+    "directed_edges": 6077,
+    "directed_length_m": 1717295.6806198752,
+    "undirected_length_m": 923933.3026229732,
+    "weak_components": 15,
+    "strong_components": 41
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "region": "부여군",
+  "request_started_at_utc": "2026-11-09T04:54:34.949498+00:00",
+  "extracted_at_utc": "2026-11-09T04:55:41.351316+00:00",
+  "source": "https://www.openstreetmap.org",
+  "license": "ODbL 1.0",
+  "boundary": {
+    "type": "Nominatim administrative relation",
+    "osm_id": 7578882,
+    "display_name": "Buyeo-gun, South Chungcheong, South Korea"
+  },
+  "crs": "epsg:4326",
+  "length_unit": "metre",
+  "network_type": "drive",
+  "retain_all": true,
+  "simplify": true,
+  "truncate_by_edge": false,
+  "osmnx_version": "2.1.1",
+  "overpass_url": "https://overpass-api.de/api",
+  "temporal_note": "Extraction time, not a guaranteed historical OSM snapshot; cache may predate this run.",
+  "statistics": {
+    "nodes": 5230,
+    "directed_edges": 12676,
+    "directed_length_m": 2803376.219450741,
+    "undirected_length_m": 1537128.7092532725,
+    "weak_components": 22,
+    "strong_components": 47
+  }
+}
