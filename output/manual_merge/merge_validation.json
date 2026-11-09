@@ -1,0 +1,38 @@
+{
+  "total": 147,
+  "kakao_api_coordinates_preserved": 142,
+  "manual_coordinates": 4,
+  "located": 146,
+  "location_unverified": 1,
+  "map_markers": 146,
+  "source_run_id": 42587230808,
+  "source_run_attempt": 2,
+  "source_artifact_id": 13659149237,
+  "source_csv_sha256": "f312f7ec2178cacad55c51a0bb448bf6f105df5ab991906d053e30609efc6928",
+  "source_142_rows_all_original_columns_unchanged": true,
+  "manual_boundary_validation": "4/4 inside existing OSM Cheongyang administrative boundary",
+  "field_verification": "not performed; manual coordinates supplied by user",
+  "crs": "EPSG:4326",
+  "csv_encoding": "UTF-8-SIG",
+  "merged_at_utc": "2026-11-09T09:16:26.242277+00:00",
+  "accessibility_excluded": [
+    {
+      "시설명": "대동마을회관",
+      "reason": "좌표를 확인하지 못해 위치 미확인. 도로 접근성 계산에서 제외."
+    }
+  ],
+  "accessibility_calculation": "not performed; eligibility flag only indicates coordinate availability",
+  "network_edge_counts": {
+    "부여군": 12676,
+    "청양군": 6077
+  },
+  "network_files_unchanged": true,
+  "network_file_sha256_before_and_after": {
+    "data/20261109T045434949410Z/buyeo/boundary.geojson": "758dc4517a2092bea8bfe72a3073aa9503510735ae1ccb12410c0edd713d87b9",
+    "data/20261109T045434949410Z/buyeo/network.gpkg": "58eee9ee10c018f05dcbdd692421e2a25000c6e80c142b59128f0d4ccb152c8a",
+    "data/20261109T045434949410Z/buyeo/network.graphml": "83ffa49283471f40b03139dbf03c358bf0854d480d64d7e9e6297bfc7a283942",
+    "data/20261109T045434949410Z/cheongyang/boundary.geojson": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d",
+    "data/20261109T045434949410Z/cheongyang/network.gpkg": "d9584655dafa085756d20ae5b906eb8b6c101de3945958c849ec293054189c0c",
+    "data/20261109T045434949410Z/cheongyang/network.graphml": "07fc38c0b875e9fbdc9c594345338c9ccc17fa751a538a7877d4d86f24dbdc41"
+  }
+}
