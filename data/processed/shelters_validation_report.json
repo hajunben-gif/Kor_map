@@ -1,0 +1,281 @@
+{
+  "validation_status": "passed_with_warnings",
+  "validation_passed": true,
+  "validated_at_utc": "2026-11-09T09:35:35.098975+00:00",
+  "purpose": "기존 API·수동 좌표 데이터 검증 및 보존. 현장 정확도를 새로 검증한 것은 아닙니다.",
+  "source": {
+    "repository": "hajunben-gif/Kor_map",
+    "ref": "main",
+    "commit": "1d0bb44d023f9dc33c46a58e1cfe94f0d602df78",
+    "path": "output/manual_merge/shelters_final_147.csv",
+    "sha256": "f0614884f9b0421de77a08bbfa698e97ffc5d04478627a8ab2a025b99b597e1a",
+    "repository_file_exists": true,
+    "working_copy_matches_repository": true,
+    "fallback_zip_used": false,
+    "api_baseline_path": "output/manual_merge/kakao_actions_original.csv",
+    "api_baseline_sha256": "f312f7ec2178cacad55c51a0bb448bf6f105df5ab991906d053e30609efc6928",
+    "actions_run_id": 42587230808,
+    "actions_artifact_id": 13659149237
+  },
+  "output": {
+    "csv": "data/processed/shelters_final_147.csv",
+    "validation_report": "data/processed/shelters_validation_report.json",
+    "encoding": "UTF-8-SIG",
+    "crs": "EPSG:4326",
+    "latitude_column": "latitude (y)",
+    "longitude_column": "longitude (x)",
+    "source_and_output_byte_identical": true,
+    "sha256": "f0614884f9b0421de77a08bbfa698e97ffc5d04478627a8ab2a025b99b597e1a"
+  },
+  "validation_policy": {
+    "unique_facility_key": [
+      "시군명",
+      "시설일련번호"
+    ],
+    "identity_policy_reference": "GEOCODING.md",
+    "cross_county_serial_reuse": "report as warning; preserve original values",
+    "no_repairs_or_inferred_coordinates": true
+  },
+  "counts": {
+    "total_facilities": 147,
+    "facilities_with_coordinates": 146,
+    "facilities_without_coordinates": 1,
+    "kakao_api_coordinates": 142,
+    "manual_coordinates": 4,
+    "by_county": {
+      "부여군": 30,
+      "청양군": 117
+    }
+  },
+  "identifiers": {
+    "serial_column": "시설일련번호",
+    "serial_values_unique_globally": false,
+    "serial_missing_count": 0,
+    "duplicate_serial_groups": 8,
+    "duplicate_serial_affected_rows": 16,
+    "duplicate_serial_excess_rows": 8,
+    "duplicate_serial_details": [
+      {
+        "시설일련번호": "85",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "인양교회"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "백제중학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "136",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "서정1리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "내산초등학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "159",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "청소1리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "마정초등학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "161",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "내직1리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "옥산초등학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "165",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "왕진1리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "부여초등학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "173",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "적곡리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "장암초등학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "183",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "구룡1리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "세도중학교"
+          }
+        ]
+      },
+      {
+        "시설일련번호": "189",
+        "occurrences": 2,
+        "facilities": [
+          {
+            "시군명": "청양군",
+            "시설명": "매곡1리회관"
+          },
+          {
+            "시군명": "부여군",
+            "시설명": "구룡초등학교"
+          }
+        ]
+      }
+    ],
+    "county_and_serial_unique": true,
+    "duplicate_county_and_serial_count": 0,
+    "identifiers_modified": false,
+    "rows_removed": 0
+  },
+  "coordinate_validation": {
+    "checked_coordinate_pairs": 146,
+    "latitude_allowed_range": [
+      -90,
+      90
+    ],
+    "longitude_allowed_range": [
+      -180,
+      180
+    ],
+    "latitude_observed_range": [
+      36.1289975876647,
+      36.5573240373432
+    ],
+    "longitude_observed_range": [
+      126.700648960422,
+      127.024845217851
+    ],
+    "invalid_or_nonfinite_pairs": 0,
+    "out_of_range_pairs": 0,
+    "partially_missing_coordinate_pairs": 0
+  },
+  "manual_facilities": [
+    {
+      "시설명": "왕진1리회관",
+      "시설일련번호": "165",
+      "시군명": "청양군",
+      "latitude": "36.329275",
+      "longitude": "126.939026",
+      "source": "Google Maps (manual)",
+      "coordinates_unchanged": true,
+      "field_verification_status": "not_field_verified"
+    },
+    {
+      "시설명": "서정1리회관",
+      "시설일련번호": "136",
+      "시군명": "청양군",
+      "latitude": "36.412012",
+      "longitude": "126.946154",
+      "source": "Google Maps (manual)",
+      "coordinates_unchanged": true,
+      "field_verification_status": "not_field_verified"
+    },
+    {
+      "시설명": "용두리회관",
+      "시설일련번호": "143",
+      "시군명": "청양군",
+      "latitude": "36.424176",
+      "longitude": "126.933180",
+      "source": "Google Maps (manual)",
+      "coordinates_unchanged": true,
+      "field_verification_status": "not_field_verified"
+    },
+    {
+      "시설명": "관생리회관",
+      "시설일련번호": "151",
+      "시군명": "청양군",
+      "latitude": "36.407545",
+      "longitude": "126.957853",
+      "source": "Google Maps (manual)",
+      "coordinates_unchanged": true,
+      "field_verification_status": "not_field_verified"
+    }
+  ],
+  "unverified_facility": {
+    "시설명": "대동마을회관",
+    "시설일련번호": "242",
+    "시군명": "청양군",
+    "latitude": "",
+    "longitude": "",
+    "geocoding_status": "location_unverified",
+    "road_accessibility_eligible": "false",
+    "accessibility_exclusion_reason": "좌표를 확인하지 못해 위치 미확인. 도로 접근성 계산에서 제외."
+  },
+  "preservation": {
+    "original_142_api_rows_all_original_columns_unchanged": true,
+    "original_four_manual_coordinate_strings_unchanged": true,
+    "all_147_rows_and_original_columns_preserved": true,
+    "preexisting_files_unchanged": true,
+    "road_network_and_boundary_files_unchanged": true,
+    "road_network_and_boundary_sha256_before_and_after": {
+      "data/20261109T045434949410Z/buyeo/boundary.geojson": "758dc4517a2092bea8bfe72a3073aa9503510735ae1ccb12410c0edd713d87b9",
+      "data/20261109T045434949410Z/buyeo/network.gpkg": "58eee9ee10c018f05dcbdd692421e2a25000c6e80c142b59128f0d4ccb152c8a",
+      "data/20261109T045434949410Z/buyeo/network.graphml": "83ffa49283471f40b03139dbf03c358bf0854d480d64d7e9e6297bfc7a283942",
+      "data/20261109T045434949410Z/cheongyang/boundary.geojson": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d",
+      "data/20261109T045434949410Z/cheongyang/network.gpkg": "d9584655dafa085756d20ae5b906eb8b6c101de3945958c849ec293054189c0c",
+      "data/20261109T045434949410Z/cheongyang/network.graphml": "07fc38c0b875e9fbdc9c594345338c9ccc17fa751a538a7877d4d86f24dbdc41"
+    }
+  },
+  "operations": {
+    "geocoding_api_called": false,
+    "shelters_connected_to_roads": false,
+    "road_accessibility_calculated": false,
+    "flood_or_warehouse_code_created": false,
+    "synthetic_data_created": false,
+    "data_corrected": false
+  },
+  "warnings": [
+    {
+      "code": "FACILITY_SERIAL_REUSED_ACROSS_COUNTIES",
+      "message": "시설일련번호 단독으로는 군 간 8개 번호가 중복됩니다. 기존 GEOCODING.md에 명시된 시군명+시설일련번호는 147행 모두 유일합니다. 원본 번호를 변경하거나 중복 행을 삭제하지 않았습니다.",
+      "duplicate_serial_groups": 8,
+      "affected_rows": 16
+    }
+  ]
+}
