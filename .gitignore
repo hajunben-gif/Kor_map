@@ -2,3 +2,9 @@
 __pycache__/
 .pytest_cache/
 data/
+
+# Never commit real credentials
+.env
+.env.*
+!.env.example
+work/

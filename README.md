@@ -1,5 +1,7 @@
 # 부여군·청양군 자동차 도로망
 
+임시주거시설의 Kakao 주소 지오코딩은 [GEOCODING.md](GEOCODING.md)를 참고하세요. 현재는 API 키 미설정으로 인증 대기 상태이며 도로망 연결은 수행하지 않습니다.
+
 [실제 데이터·지도·코드 ZIP 다운로드](https://github.com/hajunben-gif/Kor_map/raw/refs/heads/main/downloads/korea-road-network.zip) · [추출 결과](RESULTS.md)
 
 실제 데이터는 `data/20261109T045434949410Z/`에 있습니다. 저장소의 **Code → Download ZIP**으로도 전체를 받을 수 있습니다.

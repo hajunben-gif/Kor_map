@@ -1,0 +1,44 @@
+{
+  "run_at_utc": "2026-11-09T07:24:48.968195+00:00",
+  "input_csv_sha256": "39918e044e865ca2891fa6b0d53306c5895b0ff6a0ad6e281a81cf7199edc7a0",
+  "input_encoding": "CP949",
+  "output_encoding": "UTF-8-SIG",
+  "output_csv": "/workspace/output/shelters_geocoded.csv",
+  "crs": "EPSG:4326",
+  "http_calls": 0,
+  "input_rows": 147,
+  "unique_addresses": 147,
+  "capacity_note": "주거능력은 최대 수용가능인원이며 실제 이재민 수가 아닙니다.",
+  "boundary_sha256": {
+    "/workspace/work/Kor_map/data/20261109T045434949410Z/buyeo/boundary.geojson": "758dc4517a2092bea8bfe72a3073aa9503510735ae1ccb12410c0edd713d87b9",
+    "/workspace/work/Kor_map/data/20261109T045434949410Z/cheongyang/boundary.geojson": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d"
+  },
+  "boundary_source": "Previously extracted OpenStreetMap administrative relations; not a cadastral boundary",
+  "coordinate_note": "Address representative coordinates, not confirmed facility entrances",
+  "regions": {
+    "부여군": {
+      "total": 30,
+      "success": 0,
+      "failed": 0,
+      "manual_review": 0,
+      "pending": 30,
+      "success_rate": null,
+      "verified_coordinate_coverage": 0.0,
+      "status_counts": {
+        "pending_missing_api_key": 30
+      }
+    },
+    "청양군": {
+      "total": 117,
+      "success": 0,
+      "failed": 0,
+      "manual_review": 0,
+      "pending": 117,
+      "success_rate": null,
+      "verified_coordinate_coverage": 0.0,
+      "status_counts": {
+        "pending_missing_api_key": 117
+      }
+    }
+  }
+}
