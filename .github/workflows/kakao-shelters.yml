@@ -1,0 +1,47 @@
+name: Kakao Shelter Geocoding
+
+on:
+  workflow_dispatch:
+    inputs:
+      input_csv:
+        description: '저장소 내 원본 CP949 CSV 경로 (부여군30·청양군117)'
+        required: true
+        default: 'inputs/충청남도_재난안전포털 내 이재민 임시주거시설 정보_20251130.csv'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kakao-shelter-geocoding
+  cancel-in-progress: false
+
+jobs:
+  geocode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Validate input and geocode
+        env:
+          INPUT_CSV: ${{ inputs.input_csv }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+        run: python scripts/geocode_actions.py --csv "$INPUT_CSV"
+      - name: Upload results and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kakao-shelters-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            work/actions-results/*.csv
+            work/actions-results/*.html
+            work/actions-results/*.json
+            work/actions-results/*.jsonl
+          if-no-files-found: warn
+          retention-days: 14
