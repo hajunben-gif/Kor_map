@@ -75,20 +75,105 @@ def download(work):
 
 
 def extract(work):
-    from pyproj import Geod
+    """Three streaming passes; nationwide node coordinates live on disk, not RAM."""
+    import sqlite3
+    import osmium
+    from shapely.geometry import LineString
     a = audit_module()
-    geod = Geod(ellps='WGS84')
-    circle = [geod.fwd(a.LON, a.LAT, azimuth, 2050)[:2] for azimuth in range(360)]
-    bbox = [min(p[0] for p in circle)-.001, min(p[1] for p in circle)-.001,
-            max(p[0] for p in circle)+.001, max(p[1] for p in circle)+.001]
-    subprocess.run(['osmium', 'extract', '-s', 'complete_ways', '-b', ','.join(map(str,bbox)),
-                    str(work/'south-korea.osm.pbf'), '-o', str(work/'local.osm.pbf')], check=True)
-    # Fail if any way references a missing node. No clipping of way geometries.
-    subprocess.run(['osmium', 'check-refs', str(work/'local.osm.pbf')], check=True)
+    source = work/'south-korea.osm.pbf'
     metadata = json.loads((work/'source.json').read_text())
-    metadata.update(extract_bbox=bbox, extraction_strategy='complete_ways',
-                    local_sha256=file_hash(work/'local.osm.pbf'), way_node_references_checked=True)
-    write_json(work/'source.json', metadata)
+    if file_hash(source) != metadata['sha256']:
+        raise ValueError('Source PBF checksum mismatch before extraction')
+    database = work/'node-index.sqlite'
+    if database.exists() or (work/'local.osm.pbf').exists():
+        raise FileExistsError('Extraction requires fresh scratch paths')
+    db = sqlite3.connect(database)
+    try:
+        db.executescript("""
+            PRAGMA cache_size=-32768;
+            PRAGMA temp_store=FILE;
+            CREATE TABLE nodes(id INTEGER PRIMARY KEY, lon REAL, lat REAL);
+            CREATE TABLE selected_ways(id INTEGER PRIMARY KEY);
+            CREATE TABLE required_nodes(id INTEGER PRIMARY KEY);
+        """)
+        class NodeIndex(osmium.SimpleHandler):
+            def __init__(self):
+                super().__init__()
+                self.batch = []
+            def flush(self):
+                db.executemany('INSERT INTO nodes VALUES(?,?,?)', self.batch)
+                db.commit()
+                self.batch.clear()
+            def node(self, node):
+                if not node.location.valid():
+                    raise ValueError(f'Invalid node location: {node.id}')
+                self.batch.append((node.id, node.location.lon, node.location.lat))
+                if len(self.batch) >= 10000:
+                    self.flush()
+        index = NodeIndex()
+        index.apply_file(str(source))
+        index.flush()
+
+        class SelectWays(osmium.SimpleHandler):
+            def way(self, way):
+                if 'highway' not in way.tags:
+                    return
+                refs = [n.ref for n in way.nodes]
+                if len(refs) < 2:
+                    raise ValueError(f'Incomplete highway way {way.id}: fewer than two nodes')
+                coordinates = {}
+                # Bound SQL parameter count; retain original refs separately for order/repeats.
+                for offset in range(0, len(refs), 900):
+                    chunk = refs[offset:offset+900]
+                    query = 'SELECT id,lon,lat FROM nodes WHERE id IN ('+','.join('?' for _ in chunk)+')'
+                    coordinates.update({nid:(lon,lat) for nid,lon,lat in db.execute(query,chunk)})
+                missing = set(refs)-coordinates.keys()
+                if missing:
+                    raise ValueError(f'Missing reference nodes for highway way {way.id}: {min(missing)}')
+                line = LineString([a.TO_M.transform(*coordinates[n]) for n in refs])
+                # Distance to full polyline includes tangencies and crossing segments even
+                # when every vertex lies outside the disk. Never clip or insert vertices.
+                if line.distance(a.POINT) <= a.RADIUS:
+                    db.execute('INSERT INTO selected_ways VALUES(?)',(way.id,))
+                    db.executemany('INSERT OR IGNORE INTO required_nodes VALUES(?)',((n,) for n in refs))
+        SelectWays().apply_file(str(source))
+        db.commit()
+        way_count = db.execute('SELECT count(*) FROM selected_ways').fetchone()[0]
+        node_count = db.execute('SELECT count(*) FROM required_nodes').fetchone()[0]
+        if not way_count:
+            raise ValueError('No highway intersects the 2km radius')
+        writer = osmium.SimpleWriter(str(work/'local.osm.pbf'))
+        class CopySelected(osmium.SimpleHandler):
+            def __init__(self):
+                super().__init__()
+                self.nodes_written = self.ways_written = 0
+            def node(self, node):
+                if db.execute('SELECT 1 FROM required_nodes WHERE id=?',(node.id,)).fetchone():
+                    writer.add_node(node)
+                    self.nodes_written += 1
+            def way(self, way):
+                if db.execute('SELECT 1 FROM selected_ways WHERE id=?',(way.id,)).fetchone():
+                    writer.add_way(way)
+                    self.ways_written += 1
+        copy = CopySelected()
+        try:
+            copy.apply_file(str(source))
+        finally:
+            writer.close()
+        if (copy.nodes_written,copy.ways_written) != (node_count,way_count):
+            raise ValueError('Incomplete local extract: selected object count mismatch')
+        # Decode every local reference, independently of the nationwide SQLite index.
+        decoded = read_roads(work/'local.osm.pbf')
+        if len(decoded['elements']) != way_count:
+            raise ValueError('Incomplete local geometry reconstruction')
+        metadata.update(extraction_strategy='pyosmium_three_pass_sqlite_full_way_distance',
+            extraction_passes=3, node_index_storage='SQLite disk; 32MiB page cache; 10000-node insertion batches',
+            radius_m=a.RADIUS, distance_crs='EPSG:5179',
+            selected_way_count=way_count, required_node_count=node_count,
+            local_sha256=file_hash(work/'local.osm.pbf'), way_node_references_checked=True)
+        write_json(work/'source.json',metadata)
+    finally:
+        db.close()
 
 
 def read_roads(path):
@@ -101,6 +186,8 @@ def read_roads(path):
             tags = dict(way.tags)
             if 'highway' not in tags:
                 return
+            if len(way.nodes) < 2:
+                raise ValueError(f'Incomplete highway way {way.id}: fewer than two nodes')
             if any(not n.location.valid() for n in way.nodes):
                 raise ValueError(f'Missing node geometry for way {way.id}')
             self.elements.append({'type':'way', 'id':way.id, 'version':way.version,

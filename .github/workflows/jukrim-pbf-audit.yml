@@ -27,14 +27,12 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             requirements-pbf-audit.txt
-      - name: Install PBF tools and analysis dependencies
+      - name: Install Python analysis dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y osmium-tool
           python -m pip install -r requirements.txt -r requirements-pbf-audit.txt
       - name: Download official South Korea extract and verify checksum
         run: python scripts/jukrim_pbf_audit.py download --work-dir "$PBF_WORK"
-      - name: Extract complete ways around Jukrim (no Overpass)
+      - name: Extract full road geometries with PyOsmium (no system tools)
         run: python scripts/jukrim_pbf_audit.py extract --work-dir "$PBF_WORK"
       - name: Analyze only Jukrim against existing GraphML
         run: python scripts/jukrim_pbf_audit.py analyze --work-dir "$PBF_WORK" --output-dir "$AUDIT_OUTPUT"

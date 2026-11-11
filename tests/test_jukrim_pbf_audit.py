@@ -52,18 +52,56 @@ class PBFAuditTests(unittest.TestCase):
             with self.assertRaises((ValueError,osmium.InvalidLocationError)):
                 m.read_roads(xml)
 
-    def test_bbox_uses_complete_ways_and_checks_references(self):
+    def make_source(self, work, missing=False):
+        a=m.audit_module()
+        coords={1:(-3000,0),2:(3000,0),3:(0,3000),
+                4:(-3000,2100),5:(3000,2100),6:(1999,0),7:(2200,0)}
+        writer=osmium.SimpleWriter(str(work/'south-korea.osm.pbf'))
+        for nid,(dx,dy) in coords.items():
+            lon,lat=a.TO_WGS.transform(a.POINT.x+dx,a.POINT.y+dy)
+            writer.add_node(osmium.osm.mutable.Node(id=nid,location=(lon,lat)))
+        ways=[(101,[2,1,3,2],{'highway':'service','name':'순서 보존','bridge':'yes','custom':'retained'}),
+              (102,[4,5],{'highway':'residential'}),
+              (103,[6,7],{'highway':'track'})]
+        if missing:
+            ways.append((104,[1,999],{'highway':'service'}))
+        for wid,refs,tags in ways:
+            writer.add_way(osmium.osm.mutable.Way(id=wid,nodes=refs,tags=tags))
+        writer.close()
+        m.write_json(work/'source.json',{'source_url':m.URL,'sha256':m.file_hash(work/'south-korea.osm.pbf'),
+            'md5':m.file_hash(work/'south-korea.osm.pbf','md5'),'data_timestamp':'2026-01-01T00:00:00Z','test_fixture':True})
+
+    def test_crossing_without_inside_vertices_and_complete_order(self):
         with tempfile.TemporaryDirectory() as d:
-            work=Path(d);(work/'local.osm.pbf').write_bytes(b'test-only')
-            m.write_json(work/'source.json',{})
-            with patch('subprocess.run') as run:
+            work=Path(d);self.make_source(work)
+            with patch('subprocess.run',side_effect=AssertionError('No system CLI allowed')), patch('requests.sessions.Session.request',side_effect=AssertionError('No network')):
                 m.extract(work)
-            command=run.call_args_list[0].args[0]
-            self.assertEqual(command[command.index('-s')+1],'complete_ways')
-            self.assertEqual(run.call_args_list[1].args[0][:2],['osmium','check-refs'])
-            bbox=json.loads((work/'source.json').read_text())['extract_bbox']
-            self.assertTrue(bbox[0]<126.836798762428<bbox[2])
-            self.assertTrue(bbox[1]<36.3667897253441<bbox[3])
+            roads={r['id']:r for r in m.read_roads(work/'local.osm.pbf')['elements']}
+            self.assertEqual(set(roads),{101,103})
+            self.assertEqual(roads[101]['nodes'],[2,1,3,2])
+            self.assertEqual(roads[101]['tags'],{'highway':'service','name':'순서 보존','bridge':'yes','custom':'retained'})
+            self.assertEqual(len(roads[101]['geometry']),4)
+            metadata=json.loads((work/'source.json').read_text())
+            self.assertEqual(metadata['selected_way_count'],2)
+            self.assertTrue(metadata['way_node_references_checked'])
+            self.assertEqual(metadata['source_url'],m.URL)
+            self.assertEqual(metadata['data_timestamp'],'2026-01-01T00:00:00Z')
+
+    def test_extraction_missing_reference_fails_without_success_metadata(self):
+        with tempfile.TemporaryDirectory() as d:
+            work=Path(d);self.make_source(work,missing=True)
+            with self.assertRaisesRegex(ValueError,'Missing reference nodes.*104'):
+                m.extract(work)
+            metadata=json.loads((work/'source.json').read_text())
+            self.assertNotIn('local_sha256',metadata)
+            self.assertFalse((work/'local.osm.pbf').exists())
+
+    def test_source_corruption_stops_extraction(self):
+        with tempfile.TemporaryDirectory() as d:
+            work=Path(d);self.make_source(work)
+            with (work/'south-korea.osm.pbf').open('ab') as f:f.write(b'corruption')
+            with self.assertRaisesRegex(ValueError,'Source PBF checksum mismatch'):
+                m.extract(work)
 
 
 if __name__=='__main__':unittest.main()
