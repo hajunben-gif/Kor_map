@@ -1,0 +1,52 @@
+name: Jukrim Geofabrik PBF Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jukrim-pbf-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      PBF_WORK: ${{ runner.temp }}/jukrim-pbf-source
+      AUDIT_OUTPUT: ${{ runner.temp }}/jukrim-pbf-results
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-pbf-audit.txt
+      - name: Install PBF tools and analysis dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y osmium-tool
+          python -m pip install -r requirements.txt -r requirements-pbf-audit.txt
+      - name: Download official South Korea extract and verify checksum
+        run: python scripts/jukrim_pbf_audit.py download --work-dir "$PBF_WORK"
+      - name: Extract complete ways around Jukrim (no Overpass)
+        run: python scripts/jukrim_pbf_audit.py extract --work-dir "$PBF_WORK"
+      - name: Analyze only Jukrim against existing GraphML
+        run: python scripts/jukrim_pbf_audit.py analyze --work-dir "$PBF_WORK" --output-dir "$AUDIT_OUTPUT"
+      - name: Verify existing repository files unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- data output inputs
+      - name: Upload tables and report only
+        uses: actions/upload-artifact@v4
+        with:
+          name: jukrim-pbf-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.AUDIT_OUTPUT }}/*.csv
+            ${{ env.AUDIT_OUTPUT }}/*.json
+            ${{ env.AUDIT_OUTPUT }}/*.md
+          if-no-files-found: error
+          retention-days: 14
