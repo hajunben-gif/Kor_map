@@ -1,0 +1,6 @@
+﻿scenario,snapshot,scope,distance_m,way_id,status,reason
+existing_cheongyang_drive,existing 2026-11-09 graph and saved result,Cheongyang only,1359.551220,978430786,known_previous_result,Original result preserved; no recomputation or replacement
+existing_cheongyang_and_buyeo_drive,existing county graphs / prior investigation,Two existing county graphs,259.8930035442013,166680097,known_previous_result,Existing Buyeo Jicheon-ro reference is outside Cheongyang boundary
+latest_local_drive,NOT RETRIEVED,planned 2km without county mask,,,unavailable_proxy_blocked,"Overpass proxy tunnel 403; empty distance means UNKNOWN, never zero"
+latest_local_drive_service,NOT RETRIEVED,planned 2km without county mask,,,unavailable_proxy_blocked,"Overpass proxy tunnel 403; empty distance means UNKNOWN, never zero"
+latest_local_generic_highway,NOT RETRIEVED,planned 2km without county mask,,,unavailable_proxy_blocked,"Overpass proxy tunnel 403; empty distance means UNKNOWN, never zero"

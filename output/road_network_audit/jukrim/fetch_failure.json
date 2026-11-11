@@ -1,0 +1,7 @@
+{
+  "requested_at_utc": "2026-11-11T14:37:08.849723+00:00",
+  "endpoint": "https://overpass-api.de/api/interpreter",
+  "query": "[out:json][timeout:45];way(around:2000,36.3667897253441,126.836798762428)[\"highway\"];out meta geom;",
+  "error_type": "ProxyError",
+  "error": "HTTPSConnectionPool(host='overpass-api.de', port=443): Max retries exceeded with url: /api/interpreter (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+}

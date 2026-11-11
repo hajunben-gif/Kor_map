@@ -1,0 +1,217 @@
+{
+  "audit_status": "blocked_latest_osm_not_retrieved",
+  "analysis_complete": false,
+  "generated_at_utc": "2026-11-11T14:48:30.085558+00:00",
+  "facility": {
+    "name": "죽림리마을회관",
+    "csv_name": "죽림리회관",
+    "address": "충청남도 청양군 장평면 묵은논길 43-1",
+    "county": "청양군",
+    "serial": "177",
+    "latitude": "36.3667897253441",
+    "longitude": "126.836798762428"
+  },
+  "actual_http_attempt": {
+    "requested_at_utc": "2026-11-11T14:37:08.849723+00:00",
+    "endpoint": "https://overpass-api.de/api/interpreter",
+    "query": "[out:json][timeout:45];way(around:2000,36.3667897253441,126.836798762428)[\"highway\"];out meta geom;",
+    "error_type": "ProxyError",
+    "error": "HTTPSConnectionPool(host='overpass-api.de', port=443): Max retries exceeded with url: /api/interpreter (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+  },
+  "raw_osm_retrieved": false,
+  "raw_osm_base_timestamp": null,
+  "osm_roads": null,
+  "way_geometries_and_vehicle_tags": null,
+  "bridge_ford_and_connectivity_findings": null,
+  "known_existing_baselines": [
+    {
+      "scenario": "existing_cheongyang_drive",
+      "snapshot": "existing 2026-11-09 graph and saved result",
+      "scope": "Cheongyang only",
+      "distance_m": "1359.551220",
+      "way_id": "978430786",
+      "status": "known_previous_result",
+      "reason": "Original result preserved; no recomputation or replacement"
+    },
+    {
+      "scenario": "existing_cheongyang_and_buyeo_drive",
+      "snapshot": "existing county graphs / prior investigation",
+      "scope": "Two existing county graphs",
+      "distance_m": 259.8930035442013,
+      "way_id": 166680097,
+      "status": "known_previous_result",
+      "reason": "Existing Buyeo Jicheon-ro reference is outside Cheongyang boundary"
+    }
+  ],
+  "previous_evidence": {
+    "source": "output/road_access_investigation/report.json",
+    "sha256": "c09a1fc25ad1ba15c772eb5b1e56f47d2dc262d4919664020e13b901de13fe1f",
+    "saved_cheongyang_edge": {
+      "u": 9053552594,
+      "v": 9053552606,
+      "key": 0,
+      "osmid": 978430786,
+      "name": "",
+      "highway": "residential",
+      "geometry_source": "graphml_linestring",
+      "wcc_id": "cheongyang_wcc_001",
+      "is_largest_wcc": true
+    },
+    "saved_facility_and_snap": {
+      "facility": {
+        "latitude": "36.3667897253441",
+        "longitude": "126.836798762428",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "snap": {
+        "latitude": "36.3579790000",
+        "longitude": "126.8473328000",
+        "x_5179": "941443.275089",
+        "y_5179": "1818037.448421"
+      }
+    },
+    "cheongyang_boundary_distance_m": 227.45025747219876,
+    "buyeo_comparison": {
+      "source": "existing Buyeo GraphML; no new download",
+      "directed_edges_within_2km": 52,
+      "closer_existing_edge_confirmed": true,
+      "other_adjacent_county_graphs_available": false,
+      "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음.",
+      "nearest_edge": {
+        "u": 6356009116,
+        "v": 11270887011,
+        "key": 0,
+        "osmid": 166680097,
+        "name": "지천로",
+        "highway": "tertiary"
+      },
+      "reference_distance_m": 259.8930035442013,
+      "reference_point_epsg4326": [
+        126.83390270250948,
+        36.36673139493185
+      ],
+      "reference_point_inside_cheongyang_boundary": false,
+      "reference_key_present_in_cheongyang_graph": false,
+      "original_nearest_result_replaced": false
+    },
+    "stored_kakao": {
+      "artifact_id": 13659149237,
+      "member": "geocoding_candidates.jsonl",
+      "query": "충청남도 청양군 장평면 묵은논길 43-1",
+      "document_count": 1,
+      "building_name": "죽림리마을회관",
+      "road_name": "묵은논길",
+      "main_building_no": "43",
+      "sub_building_no": "1",
+      "source_coordinates_match": true,
+      "new_api_request_made": false
+    }
+  },
+  "filter_policy_confirmed_not_site_specific": {
+    "osmnx_version": "2.1.1",
+    "drive": "[\"highway\"][\"area\"!~\"yes\"][\"access\"!~\"private\"][\"highway\"!~\"abandoned|bridleway|bus_guideway|construction|corridor|cycleway|elevator|escalator|footway|no|path|pedestrian|planned|platform|proposed|raceway|razed|rest_area|service|services|steps|track\"][\"motor_vehicle\"!~\"no\"][\"motorcar\"!~\"no\"][\"service\"!~\"alley|driveway|emergency_access|parking|parking_aisle|private\"]",
+    "drive_service": "[\"highway\"][\"area\"!~\"yes\"][\"access\"!~\"private\"][\"highway\"!~\"abandoned|bridleway|bus_guideway|construction|corridor|cycleway|elevator|escalator|footway|no|path|pedestrian|planned|platform|proposed|raceway|razed|rest_area|services|steps|track\"][\"motor_vehicle\"!~\"no\"][\"motorcar\"!~\"no\"][\"service\"!~\"emergency_access|parking|parking_aisle|private\"]",
+    "interpretation": "Drive excludes highway=service; drive_service admits service unless other exclusion clauses apply. Both exclude track. This establishes policy, not the existence/tags of any currently unavailable local way."
+  },
+  "answers": {
+    "1_front_road_in_osm": "UNKNOWN: latest raw data not retrieved; proxy failure is not evidence of OSM absence.",
+    "2_front_road_excluded_by_drive": "UNKNOWN for the actual front road; only general filter policy is confirmed.",
+    "3_new_distances": {
+      "latest_drive_m": null,
+      "latest_drive_service_m": null,
+      "latest_generic_highway_m": null
+    },
+    "4_include_new_roads_in_relief_network": "Not justified on current evidence; no new roads identified/approved.",
+    "5_rebuild_both_county_networks": "DEFER: no basis for whole-network rebuilding from this blocked local audit."
+  },
+  "cause_classification": {
+    "osm_present_but_drive_filtered": "unconfirmed_local_raw_data_unavailable",
+    "unmapped_in_osm": "unconfirmed_do_not_infer_from_http_failure",
+    "county_scope_effect": "confirmed_from_existing_graphs",
+    "facility_coordinate_error": "not_confirmed_existing_address_and_building_name_consistent_no_independent_survey",
+    "motor_vehicle_passability": "not_verified"
+  },
+  "validation": {
+    "syntax_and_filter_oneway_checks_passed": true,
+    "live_raw_data_analysis_validated": false,
+    "original_files_unchanged": true,
+    "protected_inputs_sha256": {
+      ".env.example": "0af2034cb513d7aa246909c1a5cbaf6e8c8ea7fc6661fdb78d77e04752602823",
+      ".github/workflows/kakao-shelters.yml": "afdf48d9fe3843d3c450cd7e907ace9862eb93a2b977e4470b5d16caeddba9a5",
+      ".gitignore": "08b9bb780151da7d53cfdefff5c7a7d0fd28d994ccbc4ad781ed7e303c53e3e4",
+      "ACTIONS_GEOCODING.md": "09c5e0cf12053b33ee9e8db4940b215f9e506383efbadc5832e39df6ba521713",
+      "GEOCODING.md": "729022fe6bb6736918988248428a27ca375e36996ffcb757dfd556c3bb951c27",
+      "README.md": "b6842c68a58df3381a8b23a265a9dd821be4fb442f4be517c5d88c95b058da90",
+      "RESULTS.md": "b9e09f9578b7363f808525ef9a85f88f6497dde632ab9ac75f4adc46ba6432ee",
+      "data/20261109T045434949410Z/buyeo/boundary.geojson": "758dc4517a2092bea8bfe72a3073aa9503510735ae1ccb12410c0edd713d87b9",
+      "data/20261109T045434949410Z/buyeo/map.html": "4605f4ee6305556bd951e87d9e01240bab1c7ff42d5918b85c4f7fb0535c6f9e",
+      "data/20261109T045434949410Z/buyeo/metadata.json": "693282fd04b1a7db3d1b385f48b1c6e6b44c8cbe5f62f98348b2e72725355be9",
+      "data/20261109T045434949410Z/buyeo/network.gpkg": "58eee9ee10c018f05dcbdd692421e2a25000c6e80c142b59128f0d4ccb152c8a",
+      "data/20261109T045434949410Z/buyeo/network.graphml": "83ffa49283471f40b03139dbf03c358bf0854d480d64d7e9e6297bfc7a283942",
+      "data/20261109T045434949410Z/cheongyang/boundary.geojson": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d",
+      "data/20261109T045434949410Z/cheongyang/map.html": "4ace3fb1777ba59904908c505bfe287b6c06844ebeaa471440141c2834d94330",
+      "data/20261109T045434949410Z/cheongyang/metadata.json": "d3769842017932377dfe4a836e93cfdcee535bd9e4cec924ee3fbb3faee3d310",
+      "data/20261109T045434949410Z/cheongyang/network.gpkg": "d9584655dafa085756d20ae5b906eb8b6c101de3945958c849ec293054189c0c",
+      "data/20261109T045434949410Z/cheongyang/network.graphml": "07fc38c0b875e9fbdc9c594345338c9ccc17fa751a538a7877d4d86f24dbdc41",
+      "data/20261109T045434949410Z/run_status.json": "954b32c1fa2c730f59880876135974ea229025b494c4b85d8a971a328e16f6f9",
+      "data/processed/shelters_final_147.csv": "f0614884f9b0421de77a08bbfa698e97ffc5d04478627a8ab2a025b99b597e1a",
+      "data/processed/shelters_road_access_147.csv": "efbefa05ed1a3739ed0d92c2cc70fc74fdc4978d8c41bf55178e3ed1fca8a11f",
+      "data/processed/shelters_road_access_report.json": "b641ed2798f663f5d333206d43e6d79f532bac2a293502f0679134ec9c2d2ae4",
+      "data/processed/shelters_validation_report.json": "1bcd5d1c92dff2ed0515c7d322acfecf34711abd244dc8f10b47dc854443bb57",
+      "downloads/korea-road-network.zip": "9f5d264774773828d6e0558e0297ed0b1e459b7c81c2f190d9b93d2ae56afe23",
+      "downloads/shelters-geocoding.zip": "38bdf12b2cf455efc73e99e0a2b797d3f1781047096966ed620d981bfaaf249c",
+      "extract.py": "8a595b45d76cae753968aa8818af984e4f393f008d2635fec62fe09312e6f8d4",
+      "geocode_shelters.py": "dc9e8d90bdd5828b4cd949e55f60e8052b708e3c4a887a9816686e76f4b59a7c",
+      "inputs/충청남도_재난안전포털 내 이재민 임시주거시설 정보_20251130.csv": "39918e044e865ca2891fa6b0d53306c5895b0ff6a0ad6e281a81cf7199edc7a0",
+      "output/geocoding_api_audit.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output/geocoding_candidates.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "output/geocoding_summary.json": "e50bb53eab4570aefa011547a93263411fb83931124c22ff6bee4a3b99b47c9b",
+      "output/manual_merge/README.md": "50399c6688b8c24de0fb8fd64b38ae55bc6aa8129783bb59b07378c0cc9c8dc1",
+      "output/manual_merge/accessibility_excluded.csv": "52a80a5ae154131165de7f74b933b11e1d5b0a4c47578ec83fd3ec72cde84c53",
+      "output/manual_merge/kakao_actions_original.csv": "f312f7ec2178cacad55c51a0bb448bf6f105df5ab991906d053e30609efc6928",
+      "output/manual_merge/manual_coordinate_audit.csv": "1e2dcc0dfea02e889bb298b65b03f120a65c2e888fbcc188b9f40aa1b490c14f",
+      "output/manual_merge/merge_validation.json": "c0cee054472b569759a9a9563c90a4e9ece35e4173eafcb84270dea68ce15f3e",
+      "output/manual_merge/shelters_final_147.csv": "f0614884f9b0421de77a08bbfa698e97ffc5d04478627a8ab2a025b99b597e1a",
+      "output/manual_merge/shelters_roads_integrated.html": "42d9af3cac4faeba38be5c909f1210c29c8e69adec14096dcc7de4ababc48c99",
+      "output/road_access/buyeo_map.html": "c401d3a32de0a7c2a2d1e346ac782591338c41ffd6aad11ba0d6f2c6613416b7",
+      "output/road_access/cheongyang_map.html": "b4c055dce96cc82c52ad0fc76523b4b7473780ef9f895b80688f900189e75cd0",
+      "output/road_access_investigation/cheongyang_125_gaegok.html": "e1f4c75c3893abae57b5affe82d87bb293fee79ba56d9f5a169024c3a072029e",
+      "output/road_access_investigation/cheongyang_140_namcheon.html": "0139a8dcfca0073820742bd0a898bb69dd93affe6b551777356adcb4484aeb00",
+      "output/road_access_investigation/cheongyang_145_cheonjang.html": "fb869192759a3d8504e60d3ee408d4c8b5bd1947de15f3168bdbd3ce7b9e2edd",
+      "output/road_access_investigation/cheongyang_150_deokseong1.html": "41ff58186d41c846a90a6b74a7e3fe89b5f7b8ca8497dc2fb5a511102777a023",
+      "output/road_access_investigation/cheongyang_160_jigok.html": "e4984f2a7f44295d15969a151279e9f7ec301e208bc5cb94b6731c68bedfedba",
+      "output/road_access_investigation/cheongyang_177_jukrim.html": "1694f52b98e7bb93b239026689049162689c65b978920560bf6dc1a4e44fabca",
+      "output/road_access_investigation/report.json": "c09a1fc25ad1ba15c772eb5b1e56f47d2dc262d4919664020e13b901de13fe1f",
+      "output/road_access_investigation/report.md": "a9a40460e382d35380845ae237f3fa81450224c3f07883547686995cb557a93d",
+      "output/shelters_buyeo.html": "bc768caa5005f43a7652c83ce5ff0c8e72cc9e7ad89177ce5c59cd994a82d6d9",
+      "output/shelters_buyeo_review.csv": "35e1f81b9d4dc4a346d4e5ab077d58afd7bdfeb5b47aff03bd95eab58aa6b1b8",
+      "output/shelters_cheongyang.html": "831179951efce110ddfa4564aef7cd65a9f6b6a9f2dd7555ff15e7399dbc2718",
+      "output/shelters_cheongyang_review.csv": "35e1f81b9d4dc4a346d4e5ab077d58afd7bdfeb5b47aff03bd95eab58aa6b1b8",
+      "output/shelters_geocoded.csv": "dcf616aa333a679784e2664ce1b7a351f7db02365ec2d937e5b5f7be94bcf16a",
+      "output/shelters_manual_merged.zip": "ab87382629180887b5318cccb8bd011b4746e513469f80269c465c8b64d4aa98",
+      "requirements.txt": "f108fefcab92165e939c5b7afe83bb648cd9fe0cab044db4f8de2f9a234be9ae",
+      "scripts/analyze_road_access.py": "9dfcd22edff8f6b23aa44858f42ddb670dbd8439d9786df2e958912feb4cb414",
+      "scripts/geocode_actions.py": "fd0df83437091418ab5c1664e7b1e97bafb7de5da1c4c153e92d507b867f9cd2",
+      "scripts/merge_manual_coordinates.py": "106060344a4cd140a18ba7179501d801f054fbfe3702b6048fcb4bc42032da36",
+      "tests/test_extract.py": "a748a95cfe0fc728ec9983353c270bf7630d1ff3bd728ffabe67530d3cb6d2cd",
+      "tests/test_geocoding.py": "5a12101316313dc25b165226f9cdc5e0c2c3885f0ecd3e736d1a26bb1de03185",
+      "tests/test_road_access.py": "9da1db2a7fa3bd63527005206b1751ff880ae2230b77c47a58eb74d2fe3cad71",
+      "validate.py": "b25dbd5943461b0fcbdb06a828281f59342ef567ade4c77ca6a87efff00caf9d",
+      "validated-environment.txt": "25b0c6b7b7c3acab6a5f143ebbf3dccfc1e4c11f90012cb851c4c4d5c797be09"
+    },
+    "protected_file_count": 62,
+    "new_geometries_or_connections_created": false,
+    "stage2_results_modified": false
+  },
+  "resume_command": "python output/road_network_audit/jukrim/audit.py --fetch",
+  "required_environment_change": "Allow overpass-api.de on the running environment, not only reusable configuration.",
+  "screenshot": "No attached Naver image file was available. No screen digitization or Naver scraping was performed.",
+  "prepared_full_query_for_resume": "[out:json][timeout:90];\nway(around:2000,36.3667897253441,126.836798762428)[\"highway\"]->.roads;\n(\n  .roads;\n  way(around:2000,36.3667897253441,126.836798762428)[\"waterway\"];\n  way(around:2000,36.3667897253441,126.836798762428)[\"natural\"=\"water\"];\n  relation(bw.roads)[\"type\"=\"restriction\"];\n);\nout meta geom;\n>;\nout meta;",
+  "environment_confirmation": {
+    "user_confirmed": "Only reusable environment configuration was changed",
+    "running_environment_overpass_allowed": false,
+    "observations_current": true,
+    "network_policy_state": "enforced"
+  }
+}
