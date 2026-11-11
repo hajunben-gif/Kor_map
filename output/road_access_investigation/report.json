@@ -1,0 +1,920 @@
+{
+  "title": "300m 초과 시설 6곳: 기존 데이터에 한정한 원인 조사",
+  "generated_at_utc": "2026-11-11T11:26:42.453214+00:00",
+  "source_commit": "c7f599811c371f75c12621d60eb78d8584bc77a5",
+  "inputs_sha256": {
+    "data/processed/shelters_road_access_147.csv": "efbefa05ed1a3739ed0d92c2cc70fc74fdc4978d8c41bf55178e3ed1fca8a11f",
+    "data/processed/shelters_final_147.csv": "f0614884f9b0421de77a08bbfa698e97ffc5d04478627a8ab2a025b99b597e1a",
+    "data/20261109T045434949410Z/cheongyang/network.graphml": "07fc38c0b875e9fbdc9c594345338c9ccc17fa751a538a7877d4d86f24dbdc41",
+    "data/20261109T045434949410Z/cheongyang/boundary.geojson": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d",
+    "data/20261109T045434949410Z/cheongyang/metadata.json": "d3769842017932377dfe4a836e93cfdcee535bd9e4cec924ee3fbb3faee3d310",
+    "extract.py": "8a595b45d76cae753968aa8818af984e4f393f008d2635fec62fe09312e6f8d4",
+    "data/20261109T045434949410Z/buyeo/network.graphml": "83ffa49283471f40b03139dbf03c358bf0854d480d64d7e9e6297bfc7a283942"
+  },
+  "kakao_evidence": {
+    "type": "previously downloaded actual Actions artifact, no new API call",
+    "run_id": 42587230808,
+    "attempt": 2,
+    "artifact_id": 13659149237,
+    "zip_sha256": "e0fc72ecd97b7bf3df0ffc02a63b1fdccd5ca58af6a932e6d2e21df0044fa13b",
+    "member": "geocoding_candidates.jsonl",
+    "member_sha256": "0b31b754e969a82d68058c4eb7daa2e08db6c6719605f8bce259582cda12a81f"
+  },
+  "scope": {
+    "targets": 6,
+    "all_146_recomputed": false,
+    "saved_nearest_results_overwritten": false,
+    "graph_or_facility_coordinates_modified": false,
+    "road_download_or_api_requests": false,
+    "only_selected_six_distances_verified": true,
+    "flood_warehouse_or_optimization_work": false
+  },
+  "methodology": {
+    "distance_crs": "EPSG:5179",
+    "map_crs": "EPSG:4326",
+    "map_radius_m": 2000,
+    "graph_loading": "OSMnx load_graphml; project_graph; existing edges only",
+    "boundary_distance": "Shortest Euclidean distance from facility to existing OSM polygon boundary (including any holes)",
+    "saved_snap_validation": "Read saved CSV point and selected edge; verify point-on-line and distance. Exhaustive minimum-distance verification is limited to the six targets; no result is replaced.",
+    "map_edge_clipping": "Display-only intersection with 2km disk; original graph is unchanged",
+    "drive_filter_version": "2.1.1",
+    "reproduced_default_drive_filter": "[\"highway\"][\"area\"!~\"yes\"][\"access\"!~\"private\"][\"highway\"!~\"abandoned|bridleway|bus_guideway|construction|corridor|cycleway|elevator|escalator|footway|no|path|pedestrian|planned|platform|proposed|raceway|razed|rest_area|service|services|steps|track\"][\"motor_vehicle\"!~\"no\"][\"motorcar\"!~\"no\"][\"service\"!~\"alley|driveway|emergency_access|parking|parking_aisle|private\"]",
+    "filter_evidence": "Existing extract.py uses default network_type=drive without custom_filter. Filter reproduced using matching OSMnx 2.1.1; exact historic Overpass response/excluded ways are not available.",
+    "important_filter_exclusions": [
+      "highway=service",
+      "highway=track",
+      "highway=footway",
+      "highway=path",
+      "access=private",
+      "motor_vehicle=no",
+      "motorcar=no"
+    ],
+    "raw_all_road_reference_available": false,
+    "neighbor_county_check": "Existing Buyeo drive graph checked only for the six facilities and mapped within 2km. No Gongju or other adjacent-county graph available. Comparison does not replace the saved Cheongyang nearest results.",
+    "boundary_inference_limit": "If boundary distance exceeds stored road distance, an exclusively outside road cannot be closer. An inward-reaching cross-boundary edge removed as a whole is not ruled out without pre-truncation data.",
+    "background_tiles": "Live online visual context only; not treated as evidence of omitted OSM ways"
+  },
+  "summary": {
+    "target_facilities": 6,
+    "stored_distances_consistent_with_existing_graph": 6,
+    "independently_confirmed_real_world_long_access_cases": 0,
+    "local_reference_comparison_required": 6,
+    "boundary_priority_facilities": [
+      "죽림리회관",
+      "남천리회관"
+    ],
+    "independent_coordinate_confirmation_priority": [
+      "개곡리회관"
+    ],
+    "closer_existing_neighbor_county_road_confirmed": [
+      "죽림리회관"
+    ],
+    "roads_to_add_or_correct": "not determined; no road modification proposed without evidence",
+    "closer_road_filtered_by_drive_presence": "unknown for all six"
+  },
+  "cases": [
+    {
+      "facility_key": {
+        "시군명": "청양군",
+        "시설일련번호": "177"
+      },
+      "시설명": "죽림리회관",
+      "source_address": "충청남도 청양군 장평면 묵은논길 43-1",
+      "returned_address": "충남 청양군 장평면 묵은논길 43-1",
+      "facility_coordinates": {
+        "latitude": "36.3667897253441",
+        "longitude": "126.836798762428",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "saved_nearest_edge": {
+        "u": 9053552594,
+        "v": 9053552606,
+        "key": 0,
+        "osmid": 978430786,
+        "name": "",
+        "highway": "residential",
+        "geometry_source": "graphml_linestring",
+        "wcc_id": "cheongyang_wcc_001",
+        "is_largest_wcc": true
+      },
+      "saved_distance_m": "1359.551220",
+      "saved_nearest_point": {
+        "latitude": "36.3579790000",
+        "longitude": "126.8473328000",
+        "x_5179": "941443.275089",
+        "y_5179": "1818037.448421"
+      },
+      "verification": {
+        "saved_edge_exists": true,
+        "saved_point_on_edge": true,
+        "distance_matches_saved_coordinates": true,
+        "six_target_only_existing_network_min_distance_check_m": 1359.551219555109,
+        "no_closer_edge_in_existing_cheongyang_drive_graph": true,
+        "saved_results_changed": false
+      },
+      "boundary": {
+        "facility_inside": true,
+        "distance_m": 227.45025747219876,
+        "nearest_boundary_point_epsg4326": [
+          126.83426620858656,
+          36.36688565164019
+        ],
+        "boundary_is_closer_than_saved_road": true,
+        "assessment": "기존 부여군 그래프의 지천로 간선이 259.89m로 더 가까움. 그 최근접점은 청양군 경계 밖에 있고, 해당 간선 키는 청양군 그래프에 없음. 청양군 도로망만 검색한 범위 제한의 영향은 확인됨. 그래프 추출 과정의 세부 절단 이력은 원시 응답이 없어 확인 불가.",
+        "original_truncate_by_edge": false,
+        "reference": "existing OSM relation 7619553; not newly surveyed or downloaded"
+      },
+      "local_existing_network": {
+        "radius_m": 2000,
+        "directed_edges_intersecting_disk": 6,
+        "unique_clipped_geometries": 3,
+        "saved_snap_matches_graph_endpoint": null,
+        "selected_edge_endpoint_diagnostics": [
+          {
+            "node": 9053552594,
+            "distance_to_saved_snap_m": 247.232789011845,
+            "distance_to_boundary_m": 75.53433936546148,
+            "distinct_graph_neighbors": 1,
+            "is_graph_dead_end": true
+          },
+          {
+            "node": 9053552606,
+            "distance_to_saved_snap_m": 650.5431510377712,
+            "distance_to_boundary_m": 676.752966216582,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          }
+        ],
+        "address_road_name": "묵은논길",
+        "same_name_directed_edges_count_whole_county": 0,
+        "same_name_directed_edges_count_within_2km": 0,
+        "name_search_caution": "도로명 속성의 일치/미일치만으로 도로 존재 여부를 확정할 수 없습니다."
+      },
+      "neighbor_county_existing_network_comparison": {
+        "source": "existing Buyeo GraphML; no new download",
+        "directed_edges_within_2km": 52,
+        "closer_existing_edge_confirmed": true,
+        "other_adjacent_county_graphs_available": false,
+        "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음.",
+        "nearest_edge": {
+          "u": 6356009116,
+          "v": 11270887011,
+          "key": 0,
+          "osmid": 166680097,
+          "name": "지천로",
+          "highway": "tertiary"
+        },
+        "reference_distance_m": 259.8930035442013,
+        "reference_point_epsg4326": [
+          126.83390270250948,
+          36.36673139493185
+        ],
+        "reference_point_inside_cheongyang_boundary": false,
+        "reference_key_present_in_cheongyang_graph": false,
+        "original_nearest_result_replaced": false
+      },
+      "stored_kakao_evidence": {
+        "artifact_id": 13659149237,
+        "member": "geocoding_candidates.jsonl",
+        "query": "충청남도 청양군 장평면 묵은논길 43-1",
+        "document_count": 1,
+        "building_name": "죽림리마을회관",
+        "road_name": "묵은논길",
+        "main_building_no": "43",
+        "sub_building_no": "1",
+        "source_coordinates_match": true,
+        "new_api_request_made": false
+      },
+      "confirmed_facts": [
+        "저장된 원본 시설 좌표와 최종 병합 CSV 좌표가 동일함.",
+        "저장된 간선과 최근접점이 유효하고, 대상 시설에 한정한 검산 결과 기존 그래프 내부에 더 가까운 간선이 없음.",
+        "기존 청양군 경계 안에 있으며 경계까지 227.45m임.",
+        "반경 2km 내 기존 drive 방향 간선 6개가 있고, 현재 간선은 최대 WCC에 속함.",
+        "기존 부여군 그래프의 지천로 간선이 259.89m로 더 가까움. 그 최근접점은 청양군 경계 밖에 있고, 해당 간선 키는 청양군 그래프에 없음."
+      ],
+      "possible_causes": {
+        "coordinate_error": {
+          "status": "not_confirmed",
+          "assessment": "Kakao 주소·좌표 일치, 청양군 내부 및 회관과 일관된 건물명 반환은 확인. 독립 측량·현장·항공영상 검증이 없어 좌표 오류를 완전히 배제할 수 없음."
+        },
+        "closer_osm_road_filtered_from_drive": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "기본 drive 필터가 service/track/footway 등을 제외하는 것은 확인. 해당 시설 근처에 더 가까운 제외 도로가 실제로 있는지는 범용 OSM 원자료가 없어 확인 불가."
+        },
+        "unmapped_or_missing_road": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "실제 도로 존재를 보여주는 독립 도로·항공영상 자료가 없어 OSM 미매핑과 필터 제외를 구분할 수 없음."
+        },
+        "administrative_boundary_truncation": {
+          "status": "county_search_scope_effect_confirmed",
+          "assessment": "기존 부여군 그래프의 지천로 간선이 259.89m로 더 가까움. 그 최근접점은 청양군 경계 밖에 있고, 해당 간선 키는 청양군 그래프에 없음. 청양군 도로망만 검색한 범위 제한의 영향은 확인됨. 그래프 추출 과정의 세부 절단 이력은 원시 응답이 없어 확인 불가."
+        }
+      },
+      "decision": {
+        "classification": "county_search_scope_effect_confirmed",
+        "normal_real_world_long_access_confirmed": false,
+        "normal_long_distance_within_existing_graph_confirmed": true,
+        "additional_local_reference_comparison_required": true,
+        "add_or_change_road_data_now": "undetermined_pending_evidence",
+        "next_check": "기존 1,359.55m 결과는 유지. 향후 군 경계 양쪽 기존 도로망을 함께 검토하는 분석 범위가 필요한지 판단하고, 지천로에서 시설까지 실제 통행로는 별도 국소 자료로 확인."
+      },
+      "detail_map": "cheongyang_177_jukrim.html"
+    },
+    {
+      "facility_key": {
+        "시군명": "청양군",
+        "시설일련번호": "140"
+      },
+      "시설명": "남천리회관",
+      "source_address": "충청남도 청양군 정산면 면암로 355",
+      "returned_address": "충남 청양군 정산면 면암로 355",
+      "facility_coordinates": {
+        "latitude": "36.4626441012119",
+        "longitude": "126.981205370726",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "saved_nearest_edge": {
+        "u": 6435477497,
+        "v": 12119610857,
+        "key": 0,
+        "osmid": 939137800,
+        "name": "남천안무동길",
+        "highway": "residential",
+        "geometry_source": "graphml_linestring",
+        "wcc_id": "cheongyang_wcc_001",
+        "is_largest_wcc": true
+      },
+      "saved_distance_m": "552.915350",
+      "saved_nearest_point": {
+        "latitude": "36.4593071000",
+        "longitude": "126.9766215000",
+        "x_5179": "953103.992788",
+        "y_5179": "1829206.547337"
+      },
+      "verification": {
+        "saved_edge_exists": true,
+        "saved_point_on_edge": true,
+        "distance_matches_saved_coordinates": true,
+        "six_target_only_existing_network_min_distance_check_m": 552.9153495555005,
+        "no_closer_edge_in_existing_cheongyang_drive_graph": true,
+        "saved_results_changed": false
+      },
+      "boundary": {
+        "facility_inside": true,
+        "distance_m": 76.41976063047468,
+        "nearest_boundary_point_epsg4326": [
+          126.9816864,
+          36.46321300000001
+        ],
+        "boundary_is_closer_than_saved_road": true,
+        "assessment": "경계 절단 가능성 검토 우선. 경계까지 거리가 기존 접근거리보다 짧아, 경계 밖 더 가까운 도로가 제외되었을 가능성을 기하학적으로 배제할 수 없음. 실제 외부 도로 존재는 확인 불가.",
+        "original_truncate_by_edge": false,
+        "reference": "existing OSM relation 7619553; not newly surveyed or downloaded"
+      },
+      "local_existing_network": {
+        "radius_m": 2000,
+        "directed_edges_intersecting_disk": 36,
+        "unique_clipped_geometries": 19,
+        "saved_snap_matches_graph_endpoint": {
+          "node": 6435477497,
+          "distance_to_saved_snap_m": 5.616447519358245e-07,
+          "distance_to_boundary_m": 574.2879867685533,
+          "distinct_graph_neighbors": 2,
+          "is_graph_dead_end": false
+        },
+        "selected_edge_endpoint_diagnostics": [
+          {
+            "node": 6435477497,
+            "distance_to_saved_snap_m": 5.616447519358245e-07,
+            "distance_to_boundary_m": 574.2879867685533,
+            "distinct_graph_neighbors": 2,
+            "is_graph_dead_end": false
+          },
+          {
+            "node": 12119610857,
+            "distance_to_saved_snap_m": 17.777570752999818,
+            "distance_to_boundary_m": 584.0819318902935,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          }
+        ],
+        "address_road_name": "면암로",
+        "same_name_directed_edges_count_whole_county": 12,
+        "same_name_directed_edges_count_within_2km": 10,
+        "name_search_caution": "도로명 속성의 일치/미일치만으로 도로 존재 여부를 확정할 수 없습니다."
+      },
+      "neighbor_county_existing_network_comparison": {
+        "source": "existing Buyeo GraphML; no new download",
+        "directed_edges_within_2km": 0,
+        "closer_existing_edge_confirmed": false,
+        "other_adjacent_county_graphs_available": false,
+        "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음."
+      },
+      "stored_kakao_evidence": {
+        "artifact_id": 13659149237,
+        "member": "geocoding_candidates.jsonl",
+        "query": "충청남도 청양군 정산면 면암로 355",
+        "document_count": 1,
+        "building_name": "남천리경노회관",
+        "road_name": "면암로",
+        "main_building_no": "355",
+        "sub_building_no": "",
+        "source_coordinates_match": true,
+        "new_api_request_made": false
+      },
+      "confirmed_facts": [
+        "저장된 원본 시설 좌표와 최종 병합 CSV 좌표가 동일함.",
+        "저장된 간선과 최근접점이 유효하고, 대상 시설에 한정한 검산 결과 기존 그래프 내부에 더 가까운 간선이 없음.",
+        "기존 청양군 경계 안에 있으며 경계까지 76.42m임.",
+        "반경 2km 내 기존 drive 방향 간선 36개가 있고, 현재 간선은 최대 WCC에 속함."
+      ],
+      "possible_causes": {
+        "coordinate_error": {
+          "status": "not_confirmed",
+          "assessment": "Kakao 주소·좌표 일치, 청양군 내부 및 회관과 일관된 건물명 반환은 확인. 독립 측량·현장·항공영상 검증이 없어 좌표 오류를 완전히 배제할 수 없음."
+        },
+        "closer_osm_road_filtered_from_drive": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "기본 drive 필터가 service/track/footway 등을 제외하는 것은 확인. 해당 시설 근처에 더 가까운 제외 도로가 실제로 있는지는 범용 OSM 원자료가 없어 확인 불가."
+        },
+        "unmapped_or_missing_road": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "실제 도로 존재를 보여주는 독립 도로·항공영상 자료가 없어 OSM 미매핑과 필터 제외를 구분할 수 없음."
+        },
+        "administrative_boundary_truncation": {
+          "status": "possible_priority_check",
+          "assessment": "경계 절단 가능성 검토 우선. 경계까지 거리가 기존 접근거리보다 짧아, 경계 밖 더 가까운 도로가 제외되었을 가능성을 기하학적으로 배제할 수 없음. 실제 외부 도로 존재는 확인 불가."
+        }
+      },
+      "decision": {
+        "classification": "boundary_and_local_road_check_required",
+        "normal_real_world_long_access_confirmed": false,
+        "normal_long_distance_within_existing_graph_confirmed": true,
+        "additional_local_reference_comparison_required": true,
+        "add_or_change_road_data_now": "undetermined_pending_evidence",
+        "next_check": "기존 스냅 결과는 유지. 해당 시설 반경 2km 범용 OSM 원자료의 service/track/access 태그와 독립 도로·영상 자료를 국소 비교한 뒤 보완 여부 결정."
+      },
+      "detail_map": "cheongyang_140_namcheon.html"
+    },
+    {
+      "facility_key": {
+        "시군명": "청양군",
+        "시설일련번호": "125"
+      },
+      "시설명": "개곡리회관",
+      "source_address": "충청남도 청양군 대치면 돌모로길 111-1",
+      "returned_address": "충남 청양군 대치면 돌모로길 111-1",
+      "facility_coordinates": {
+        "latitude": "36.3931835307507",
+        "longitude": "126.840266241266",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "saved_nearest_edge": {
+        "u": 437075684,
+        "v": 5591616192,
+        "key": 0,
+        "osmid": [
+          165491301,
+          603004670,
+          686758077
+        ],
+        "name": "지천구곡로",
+        "highway": "tertiary",
+        "geometry_source": "graphml_linestring",
+        "wcc_id": "cheongyang_wcc_001",
+        "is_largest_wcc": true
+      },
+      "saved_distance_m": "551.510170",
+      "saved_nearest_point": {
+        "latitude": "36.3978095000",
+        "longitude": "126.8425199000",
+        "x_5179": "941041.531695",
+        "y_5179": "1822458.526576"
+      },
+      "verification": {
+        "saved_edge_exists": true,
+        "saved_point_on_edge": true,
+        "distance_matches_saved_coordinates": true,
+        "six_target_only_existing_network_min_distance_check_m": 551.5101701309388,
+        "no_closer_edge_in_existing_cheongyang_drive_graph": true,
+        "saved_results_changed": false
+      },
+      "boundary": {
+        "facility_inside": true,
+        "distance_m": 924.7765213901465,
+        "nearest_boundary_point_epsg4326": [
+          126.84182059285233,
+          36.38494196581021
+        ],
+        "boundary_is_closer_than_saved_road": false,
+        "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함.",
+        "original_truncate_by_edge": false,
+        "reference": "existing OSM relation 7619553; not newly surveyed or downloaded"
+      },
+      "local_existing_network": {
+        "radius_m": 2000,
+        "directed_edges_intersecting_disk": 35,
+        "unique_clipped_geometries": 19,
+        "saved_snap_matches_graph_endpoint": null,
+        "selected_edge_endpoint_diagnostics": [
+          {
+            "node": 437075684,
+            "distance_to_saved_snap_m": 355.72945100767146,
+            "distance_to_boundary_m": 1601.3173186706435,
+            "distinct_graph_neighbors": 4,
+            "is_graph_dead_end": false
+          },
+          {
+            "node": 5591616192,
+            "distance_to_saved_snap_m": 57.20930179110596,
+            "distance_to_boundary_m": 1388.5007104789713,
+            "distinct_graph_neighbors": 2,
+            "is_graph_dead_end": false
+          }
+        ],
+        "address_road_name": "돌모로길",
+        "same_name_directed_edges_count_whole_county": 0,
+        "same_name_directed_edges_count_within_2km": 0,
+        "name_search_caution": "도로명 속성의 일치/미일치만으로 도로 존재 여부를 확정할 수 없습니다."
+      },
+      "neighbor_county_existing_network_comparison": {
+        "source": "existing Buyeo GraphML; no new download",
+        "directed_edges_within_2km": 0,
+        "closer_existing_edge_confirmed": false,
+        "other_adjacent_county_graphs_available": false,
+        "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음."
+      },
+      "stored_kakao_evidence": {
+        "artifact_id": 13659149237,
+        "member": "geocoding_candidates.jsonl",
+        "query": "충청남도 청양군 대치면 돌모로길 111-1",
+        "document_count": 1,
+        "building_name": "",
+        "road_name": "돌모로길",
+        "main_building_no": "111",
+        "sub_building_no": "1",
+        "source_coordinates_match": true,
+        "new_api_request_made": false
+      },
+      "confirmed_facts": [
+        "저장된 원본 시설 좌표와 최종 병합 CSV 좌표가 동일함.",
+        "저장된 간선과 최근접점이 유효하고, 대상 시설에 한정한 검산 결과 기존 그래프 내부에 더 가까운 간선이 없음.",
+        "기존 청양군 경계 안에 있으며 경계까지 924.78m임.",
+        "반경 2km 내 기존 drive 방향 간선 35개가 있고, 현재 간선은 최대 WCC에 속함."
+      ],
+      "possible_causes": {
+        "coordinate_error": {
+          "status": "not_confirmed",
+          "assessment": "Kakao 주소·좌표 일치, 청양군 내부는 확인. 건물명이 반환되지 않아 시설 자체와 좌표의 대응은 독립 검증 필요. 좌표 오류는 확인되지 않았으나 배제할 수 없음."
+        },
+        "closer_osm_road_filtered_from_drive": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "기본 drive 필터가 service/track/footway 등을 제외하는 것은 확인. 해당 시설 근처에 더 가까운 제외 도로가 실제로 있는지는 범용 OSM 원자료가 없어 확인 불가."
+        },
+        "unmapped_or_missing_road": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "실제 도로 존재를 보여주는 독립 도로·항공영상 자료가 없어 OSM 미매핑과 필터 제외를 구분할 수 없음."
+        },
+        "administrative_boundary_truncation": {
+          "status": "no_direct_local_evidence",
+          "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함."
+        }
+      },
+      "decision": {
+        "classification": "coordinate_and_local_road_check_required",
+        "normal_real_world_long_access_confirmed": false,
+        "normal_long_distance_within_existing_graph_confirmed": true,
+        "additional_local_reference_comparison_required": true,
+        "add_or_change_road_data_now": "undetermined_pending_evidence",
+        "next_check": "기존 스냅 결과는 유지. 해당 시설 반경 2km 범용 OSM 원자료의 service/track/access 태그와 독립 도로·영상 자료를 국소 비교한 뒤 보완 여부 결정."
+      },
+      "detail_map": "cheongyang_125_gaegok.html"
+    },
+    {
+      "facility_key": {
+        "시군명": "청양군",
+        "시설일련번호": "160"
+      },
+      "시설명": "지곡리회관",
+      "source_address": "충청남도 청양군 청남면 지곡2길 19-12",
+      "returned_address": "충남 청양군 청남면 지곡2길 19-12",
+      "facility_coordinates": {
+        "latitude": "36.3676487060318",
+        "longitude": "126.946864467653",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "saved_nearest_edge": {
+        "u": 5722445876,
+        "v": 11765707840,
+        "key": 0,
+        "osmid": 560362917,
+        "name": "왕진로",
+        "highway": "secondary",
+        "geometry_source": "graphml_linestring",
+        "wcc_id": "cheongyang_wcc_001",
+        "is_largest_wcc": true
+      },
+      "saved_distance_m": "458.197752",
+      "saved_nearest_point": {
+        "latitude": "36.3644896780",
+        "longitude": "126.9435737151",
+        "x_5179": "950082.171706",
+        "y_5179": "1818705.618219"
+      },
+      "verification": {
+        "saved_edge_exists": true,
+        "saved_point_on_edge": true,
+        "distance_matches_saved_coordinates": true,
+        "six_target_only_existing_network_min_distance_check_m": 458.19775204248924,
+        "no_closer_edge_in_existing_cheongyang_drive_graph": true,
+        "saved_results_changed": false
+      },
+      "boundary": {
+        "facility_inside": true,
+        "distance_m": 3725.8653231514318,
+        "nearest_boundary_point_epsg4326": [
+          126.98829975936924,
+          36.36536088680052
+        ],
+        "boundary_is_closer_than_saved_road": false,
+        "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함.",
+        "original_truncate_by_edge": false,
+        "reference": "existing OSM relation 7619553; not newly surveyed or downloaded"
+      },
+      "local_existing_network": {
+        "radius_m": 2000,
+        "directed_edges_intersecting_disk": 212,
+        "unique_clipped_geometries": 129,
+        "saved_snap_matches_graph_endpoint": null,
+        "selected_edge_endpoint_diagnostics": [
+          {
+            "node": 5722445876,
+            "distance_to_saved_snap_m": 818.3558287617315,
+            "distance_to_boundary_m": 3187.200284623307,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          },
+          {
+            "node": 11765707840,
+            "distance_to_saved_snap_m": 82.09681776796045,
+            "distance_to_boundary_m": 3948.582080094552,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          }
+        ],
+        "address_road_name": "지곡2길",
+        "same_name_directed_edges_count_whole_county": 0,
+        "same_name_directed_edges_count_within_2km": 0,
+        "name_search_caution": "도로명 속성의 일치/미일치만으로 도로 존재 여부를 확정할 수 없습니다."
+      },
+      "neighbor_county_existing_network_comparison": {
+        "source": "existing Buyeo GraphML; no new download",
+        "directed_edges_within_2km": 0,
+        "closer_existing_edge_confirmed": false,
+        "other_adjacent_county_graphs_available": false,
+        "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음."
+      },
+      "stored_kakao_evidence": {
+        "artifact_id": 13659149237,
+        "member": "geocoding_candidates.jsonl",
+        "query": "충청남도 청양군 청남면 지곡2길 19-12",
+        "document_count": 1,
+        "building_name": "지곡회관",
+        "road_name": "지곡2길",
+        "main_building_no": "19",
+        "sub_building_no": "12",
+        "source_coordinates_match": true,
+        "new_api_request_made": false
+      },
+      "confirmed_facts": [
+        "저장된 원본 시설 좌표와 최종 병합 CSV 좌표가 동일함.",
+        "저장된 간선과 최근접점이 유효하고, 대상 시설에 한정한 검산 결과 기존 그래프 내부에 더 가까운 간선이 없음.",
+        "기존 청양군 경계 안에 있으며 경계까지 3725.87m임.",
+        "반경 2km 내 기존 drive 방향 간선 212개가 있고, 현재 간선은 최대 WCC에 속함."
+      ],
+      "possible_causes": {
+        "coordinate_error": {
+          "status": "not_confirmed",
+          "assessment": "Kakao 주소·좌표 일치, 청양군 내부 및 회관과 일관된 건물명 반환은 확인. 독립 측량·현장·항공영상 검증이 없어 좌표 오류를 완전히 배제할 수 없음."
+        },
+        "closer_osm_road_filtered_from_drive": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "기본 drive 필터가 service/track/footway 등을 제외하는 것은 확인. 해당 시설 근처에 더 가까운 제외 도로가 실제로 있는지는 범용 OSM 원자료가 없어 확인 불가."
+        },
+        "unmapped_or_missing_road": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "실제 도로 존재를 보여주는 독립 도로·항공영상 자료가 없어 OSM 미매핑과 필터 제외를 구분할 수 없음."
+        },
+        "administrative_boundary_truncation": {
+          "status": "no_direct_local_evidence",
+          "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함."
+        }
+      },
+      "decision": {
+        "classification": "local_road_check_required",
+        "normal_real_world_long_access_confirmed": false,
+        "normal_long_distance_within_existing_graph_confirmed": true,
+        "additional_local_reference_comparison_required": true,
+        "add_or_change_road_data_now": "undetermined_pending_evidence",
+        "next_check": "기존 스냅 결과는 유지. 해당 시설 반경 2km 범용 OSM 원자료의 service/track/access 태그와 독립 도로·영상 자료를 국소 비교한 뒤 보완 여부 결정."
+      },
+      "detail_map": "cheongyang_160_jigok.html"
+    },
+    {
+      "facility_key": {
+        "시군명": "청양군",
+        "시설일련번호": "150"
+      },
+      "시설명": "덕성1리회관",
+      "source_address": "충청남도 청양군 정산면 정골길 40",
+      "returned_address": "충남 청양군 정산면 정골길 40",
+      "facility_coordinates": {
+        "latitude": "36.3931088790167",
+        "longitude": "126.957580129621",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "saved_nearest_edge": {
+        "u": 9053527550,
+        "v": 11276547070,
+        "key": 0,
+        "osmid": [
+          1243114769,
+          1243114770,
+          1216982662
+        ],
+        "name": "덕성길",
+        "highway": "residential",
+        "geometry_source": "graphml_linestring",
+        "wcc_id": "cheongyang_wcc_001",
+        "is_largest_wcc": true
+      },
+      "saved_distance_m": "360.038143",
+      "saved_nearest_point": {
+        "latitude": "36.3899051180",
+        "longitude": "126.9582239878",
+        "x_5179": "951412.292226",
+        "y_5179": "1821517.309199"
+      },
+      "verification": {
+        "saved_edge_exists": true,
+        "saved_point_on_edge": true,
+        "distance_matches_saved_coordinates": true,
+        "six_target_only_existing_network_min_distance_check_m": 360.0381431996307,
+        "no_closer_edge_in_existing_cheongyang_drive_graph": true,
+        "saved_results_changed": false
+      },
+      "boundary": {
+        "facility_inside": true,
+        "distance_m": 3726.9770209396675,
+        "nearest_boundary_point_epsg4326": [
+          126.99152626164448,
+          36.373731142052115
+        ],
+        "boundary_is_closer_than_saved_road": false,
+        "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함.",
+        "original_truncate_by_edge": false,
+        "reference": "existing OSM relation 7619553; not newly surveyed or downloaded"
+      },
+      "local_existing_network": {
+        "radius_m": 2000,
+        "directed_edges_intersecting_disk": 140,
+        "unique_clipped_geometries": 73,
+        "saved_snap_matches_graph_endpoint": null,
+        "selected_edge_endpoint_diagnostics": [
+          {
+            "node": 9053527550,
+            "distance_to_saved_snap_m": 1746.8291515643166,
+            "distance_to_boundary_m": 5188.043797046055,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          },
+          {
+            "node": 11276547070,
+            "distance_to_saved_snap_m": 361.68073813313543,
+            "distance_to_boundary_m": 3127.4835094830596,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          }
+        ],
+        "address_road_name": "정골길",
+        "same_name_directed_edges_count_whole_county": 0,
+        "same_name_directed_edges_count_within_2km": 0,
+        "name_search_caution": "도로명 속성의 일치/미일치만으로 도로 존재 여부를 확정할 수 없습니다."
+      },
+      "neighbor_county_existing_network_comparison": {
+        "source": "existing Buyeo GraphML; no new download",
+        "directed_edges_within_2km": 0,
+        "closer_existing_edge_confirmed": false,
+        "other_adjacent_county_graphs_available": false,
+        "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음."
+      },
+      "stored_kakao_evidence": {
+        "artifact_id": 13659149237,
+        "member": "geocoding_candidates.jsonl",
+        "query": "충청남도 청양군 정산면 정골길 40",
+        "document_count": 1,
+        "building_name": "덕성1리마을회관",
+        "road_name": "정골길",
+        "main_building_no": "40",
+        "sub_building_no": "",
+        "source_coordinates_match": true,
+        "new_api_request_made": false
+      },
+      "confirmed_facts": [
+        "저장된 원본 시설 좌표와 최종 병합 CSV 좌표가 동일함.",
+        "저장된 간선과 최근접점이 유효하고, 대상 시설에 한정한 검산 결과 기존 그래프 내부에 더 가까운 간선이 없음.",
+        "기존 청양군 경계 안에 있으며 경계까지 3726.98m임.",
+        "반경 2km 내 기존 drive 방향 간선 140개가 있고, 현재 간선은 최대 WCC에 속함."
+      ],
+      "possible_causes": {
+        "coordinate_error": {
+          "status": "not_confirmed",
+          "assessment": "Kakao 주소·좌표 일치, 청양군 내부 및 회관과 일관된 건물명 반환은 확인. 독립 측량·현장·항공영상 검증이 없어 좌표 오류를 완전히 배제할 수 없음."
+        },
+        "closer_osm_road_filtered_from_drive": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "기본 drive 필터가 service/track/footway 등을 제외하는 것은 확인. 해당 시설 근처에 더 가까운 제외 도로가 실제로 있는지는 범용 OSM 원자료가 없어 확인 불가."
+        },
+        "unmapped_or_missing_road": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "실제 도로 존재를 보여주는 독립 도로·항공영상 자료가 없어 OSM 미매핑과 필터 제외를 구분할 수 없음."
+        },
+        "administrative_boundary_truncation": {
+          "status": "no_direct_local_evidence",
+          "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함."
+        }
+      },
+      "decision": {
+        "classification": "local_road_check_required",
+        "normal_real_world_long_access_confirmed": false,
+        "normal_long_distance_within_existing_graph_confirmed": true,
+        "additional_local_reference_comparison_required": true,
+        "add_or_change_road_data_now": "undetermined_pending_evidence",
+        "next_check": "기존 스냅 결과는 유지. 해당 시설 반경 2km 범용 OSM 원자료의 service/track/access 태그와 독립 도로·영상 자료를 국소 비교한 뒤 보완 여부 결정."
+      },
+      "detail_map": "cheongyang_150_deokseong1.html"
+    },
+    {
+      "facility_key": {
+        "시군명": "청양군",
+        "시설일련번호": "145"
+      },
+      "시설명": "천장리회관",
+      "source_address": "충청남도 청양군 정산면 천장호길 175-11",
+      "returned_address": "충남 청양군 정산면 천장호길 175-11",
+      "facility_coordinates": {
+        "latitude": "36.4094906796389",
+        "longitude": "126.916034588953",
+        "source": "Kakao Local address API",
+        "independently_field_verified": false
+      },
+      "saved_nearest_edge": {
+        "u": 8670115792,
+        "v": 8670115795,
+        "key": 0,
+        "osmid": [
+          935628632,
+          935628633,
+          935628623
+        ],
+        "name": "",
+        "highway": "residential",
+        "geometry_source": "graphml_linestring",
+        "wcc_id": "cheongyang_wcc_001",
+        "is_largest_wcc": true
+      },
+      "saved_distance_m": "345.324839",
+      "saved_nearest_point": {
+        "latitude": "36.4092192000",
+        "longitude": "126.9198713000",
+        "x_5179": "947985.574561",
+        "y_5179": "1823679.678686"
+      },
+      "verification": {
+        "saved_edge_exists": true,
+        "saved_point_on_edge": true,
+        "distance_matches_saved_coordinates": true,
+        "six_target_only_existing_network_min_distance_check_m": 345.32483931589775,
+        "no_closer_edge_in_existing_cheongyang_drive_graph": true,
+        "saved_results_changed": false
+      },
+      "boundary": {
+        "facility_inside": true,
+        "distance_m": 4873.866628719385,
+        "nearest_boundary_point_epsg4326": [
+          126.92088600000001,
+          36.45325330000001
+        ],
+        "boundary_is_closer_than_saved_road": false,
+        "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함.",
+        "original_truncate_by_edge": false,
+        "reference": "existing OSM relation 7619553; not newly surveyed or downloaded"
+      },
+      "local_existing_network": {
+        "radius_m": 2000,
+        "directed_edges_intersecting_disk": 60,
+        "unique_clipped_geometries": 30,
+        "saved_snap_matches_graph_endpoint": {
+          "node": 8670115792,
+          "distance_to_saved_snap_m": 1.9208531629180947e-07,
+          "distance_to_boundary_m": 4885.387341832685,
+          "distinct_graph_neighbors": 1,
+          "is_graph_dead_end": true
+        },
+        "selected_edge_endpoint_diagnostics": [
+          {
+            "node": 8670115792,
+            "distance_to_saved_snap_m": 1.9208531629180947e-07,
+            "distance_to_boundary_m": 4885.387341832685,
+            "distinct_graph_neighbors": 1,
+            "is_graph_dead_end": true
+          },
+          {
+            "node": 8670115795,
+            "distance_to_saved_snap_m": 90.76899155259365,
+            "distance_to_boundary_m": 4858.208238837292,
+            "distinct_graph_neighbors": 3,
+            "is_graph_dead_end": false
+          }
+        ],
+        "address_road_name": "천장호길",
+        "same_name_directed_edges_count_whole_county": 4,
+        "same_name_directed_edges_count_within_2km": 4,
+        "name_search_caution": "도로명 속성의 일치/미일치만으로 도로 존재 여부를 확정할 수 없습니다."
+      },
+      "neighbor_county_existing_network_comparison": {
+        "source": "existing Buyeo GraphML; no new download",
+        "directed_edges_within_2km": 0,
+        "closer_existing_edge_confirmed": false,
+        "other_adjacent_county_graphs_available": false,
+        "limitation": "인접 부여군 자료만 대조했으며 공주시 등 다른 인접 지역 도로망은 확보되어 있지 않음."
+      },
+      "stored_kakao_evidence": {
+        "artifact_id": 13659149237,
+        "member": "geocoding_candidates.jsonl",
+        "query": "충청남도 청양군 정산면 천장호길 175-11",
+        "document_count": 1,
+        "building_name": "천장리마을회관",
+        "road_name": "천장호길",
+        "main_building_no": "175",
+        "sub_building_no": "11",
+        "source_coordinates_match": true,
+        "new_api_request_made": false
+      },
+      "confirmed_facts": [
+        "저장된 원본 시설 좌표와 최종 병합 CSV 좌표가 동일함.",
+        "저장된 간선과 최근접점이 유효하고, 대상 시설에 한정한 검산 결과 기존 그래프 내부에 더 가까운 간선이 없음.",
+        "기존 청양군 경계 안에 있으며 경계까지 4873.87m임.",
+        "반경 2km 내 기존 drive 방향 간선 60개가 있고, 현재 간선은 최대 WCC에 속함.",
+        "저장 최근접점은 현재 그래프의 이웃 1개인 말단 노드에 위치함. 실제 도로 종점인지 필터 제외로 생긴 종점인지는 확인 불가."
+      ],
+      "possible_causes": {
+        "coordinate_error": {
+          "status": "not_confirmed",
+          "assessment": "Kakao 주소·좌표 일치, 청양군 내부 및 회관과 일관된 건물명 반환은 확인. 독립 측량·현장·항공영상 검증이 없어 좌표 오류를 완전히 배제할 수 없음."
+        },
+        "closer_osm_road_filtered_from_drive": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "기본 drive 필터가 service/track/footway 등을 제외하는 것은 확인. 해당 시설 근처에 더 가까운 제외 도로가 실제로 있는지는 범용 OSM 원자료가 없어 확인 불가."
+        },
+        "unmapped_or_missing_road": {
+          "status": "unknown_existing_data_insufficient",
+          "assessment": "실제 도로 존재를 보여주는 독립 도로·항공영상 자료가 없어 OSM 미매핑과 필터 제외를 구분할 수 없음."
+        },
+        "administrative_boundary_truncation": {
+          "status": "no_direct_local_evidence",
+          "assessment": "시설에서 기존 접근거리 이내 공간은 경계 내부. 경계 밖에만 있는 도로의 제외만으로는 장거리를 설명할 수 없음. 단, 경계 교차 간선 전체 삭제 가능성은 비절단 원자료가 없어 완전히 배제하지 못함."
+        }
+      },
+      "decision": {
+        "classification": "local_road_check_required",
+        "normal_real_world_long_access_confirmed": false,
+        "normal_long_distance_within_existing_graph_confirmed": true,
+        "additional_local_reference_comparison_required": true,
+        "add_or_change_road_data_now": "undetermined_pending_evidence",
+        "next_check": "기존 스냅 결과는 유지. 해당 시설 반경 2km 범용 OSM 원자료의 service/track/access 태그와 독립 도로·영상 자료를 국소 비교한 뒤 보완 여부 결정."
+      },
+      "detail_map": "cheongyang_145_cheonjang.html"
+    }
+  ],
+  "preservation": {
+    "all_preexisting_tracked_files_unchanged": true,
+    "checked_file_count": 54,
+    "new_deliverables_only": "two investigation reports and six detail HTML maps",
+    "no_synthetic_road_or_graph_connection_added": true
+  },
+  "verification_checks": {
+    "target_count": 6,
+    "saved_edge_and_snap_checks_passed": 6,
+    "boundary_distance_checks_passed": 6,
+    "html_maps_with_original_facility_and_saved_snap_and_connector_verified": 6,
+    "browser_page_errors": 0,
+    "browser_validation_mode": "Real CDN libraries from local cache; external tiles disabled for test",
+    "unchanged_preexisting_tracked_files_verified": 54
+  }
+}
