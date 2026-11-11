@@ -1,0 +1,8 @@
+{
+  "endpoint": "https://overpass-api.de/api/interpreter",
+  "requested_at_utc": "2026-11-11T14:54:31.745690+00:00",
+  "query": "[out:json][timeout:90];\nway(around:2000,36.3667897253441,126.836798762428)[\"highway\"]->.roads;\n(\n  .roads;\n  way(around:2000,36.3667897253441,126.836798762428)[\"waterway\"];\n  way(around:2000,36.3667897253441,126.836798762428)[\"natural\"=\"water\"];\n  relation(bw.roads)[\"type\"=\"restriction\"];\n);\nout meta geom;\n>;\nout meta;",
+  "http_status": 406,
+  "error_type": "HTTPError",
+  "error": "406 Client Error: Not Acceptable for url: https://overpass-api.de/api/interpreter"
+}

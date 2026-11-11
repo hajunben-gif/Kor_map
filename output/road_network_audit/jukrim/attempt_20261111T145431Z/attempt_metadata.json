@@ -1,0 +1,20 @@
+{
+  "environment_domain_check": {
+    "host": "overpass-api.de",
+    "allowed": true,
+    "observations_current": true,
+    "network_policy_state": "enforced",
+    "startup_policy_also_allows_host": true
+  },
+  "command": "python output/road_network_audit/jukrim/audit.py --fetch",
+  "executions": 1,
+  "exit_code": 2,
+  "retries": 0,
+  "facility": "죽림리마을회관",
+  "radius_m": 2000,
+  "latest_osm_retrieved": false,
+  "analysis_complete": false,
+  "original_inputs_sha256_verified_count": 62,
+  "previous_audit_outputs_modified": false,
+  "note": "HTTP 406 observed; cause not established. Generated legacy blocked report was not adopted because it incorrectly hardcodes proxy 403."
+}
