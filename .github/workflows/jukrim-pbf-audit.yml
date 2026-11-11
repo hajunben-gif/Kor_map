@@ -14,10 +14,11 @@ jobs:
   audit:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
-    env:
-      PBF_WORK: ${{ runner.temp }}/jukrim-pbf-source
-      AUDIT_OUTPUT: ${{ runner.temp }}/jukrim-pbf-results
     steps:
+      - name: Set temporary directories
+        run: |
+          printf 'PBF_WORK=%s/jukrim-pbf-source\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          printf 'AUDIT_OUTPUT=%s/jukrim-pbf-results\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
