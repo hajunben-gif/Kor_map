@@ -1,0 +1,1117 @@
+{
+  "status": "validated",
+  "created_at_utc": "2026-11-13T06:51:59.248628+00:00",
+  "code_base_commit": "a33654e0e05051fe3c55ce377abadcd64042b3b2",
+  "script_sha256": "80e8e7477824f5e13f7529a7e4b2f5c085aa06d9570dde18c59c00718d288b35",
+  "versions": {
+    "shapely": "2.2.0",
+    "pyproj": "3.8.0",
+    "proj": "9.8.1"
+  },
+  "policy": {
+    "metric_crs": "EPSG:5179",
+    "coordinate_order": "always_xy",
+    "buffer_distances_m": [
+      2000,
+      5000
+    ],
+    "buffer_quad_segs": 64,
+    "buffer_method": "planar EPSG:5179, round joins; circular arcs polygonally approximated",
+    "roundtrip_tolerance_m": 0.01,
+    "geometry_repair_applied": false
+  },
+  "sources": {
+    "buyeo": {
+      "path": "/workspace/Kor_map/data/20261109T045434949410Z/buyeo/boundary.geojson",
+      "sha256": "758dc4517a2092bea8bfe72a3073aa9503510735ae1ccb12410c0edd713d87b9",
+      "bytes": 22398,
+      "region": "부여군",
+      "declared_crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+      "crs_wkt": "GEOGCRS[\"WGS 84 (CRS84)\",ENSEMBLE[\"World Geodetic System 1984 ensemble\",MEMBER[\"World Geodetic System 1984 (Transit)\"],MEMBER[\"World Geodetic System 1984 (G730)\"],MEMBER[\"World Geodetic System 1984 (G873)\"],MEMBER[\"World Geodetic System 1984 (G1150)\"],MEMBER[\"World Geodetic System 1984 (G1674)\"],MEMBER[\"World Geodetic System 1984 (G1762)\"],MEMBER[\"World Geodetic System 1984 (G2139)\"],MEMBER[\"World Geodetic System 1984 (G2296)\"],ELLIPSOID[\"WGS 84\",6378137,298.257223563,LENGTHUNIT[\"metre\",1]],ENSEMBLEACCURACY[2.0]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],CS[ellipsoidal,2],AXIS[\"geodetic longitude (Lon)\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433]],AXIS[\"geodetic latitude (Lat)\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433]],USAGE[SCOPE[\"Not known.\"],AREA[\"World.\"],BBOX[-90,-180,90,180]],ID[\"OGC\",\"CRS84\"]]",
+      "crs_assumed_from_rfc7946": false,
+      "area_m2": 621136839.0717266,
+      "committed_hash_verified": true
+    },
+    "cheongyang": {
+      "path": "/workspace/Kor_map/data/20261109T045434949410Z/cheongyang/boundary.geojson",
+      "sha256": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d",
+      "bytes": 31430,
+      "region": "청양군",
+      "declared_crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+      "crs_wkt": "GEOGCRS[\"WGS 84 (CRS84)\",ENSEMBLE[\"World Geodetic System 1984 ensemble\",MEMBER[\"World Geodetic System 1984 (Transit)\"],MEMBER[\"World Geodetic System 1984 (G730)\"],MEMBER[\"World Geodetic System 1984 (G873)\"],MEMBER[\"World Geodetic System 1984 (G1150)\"],MEMBER[\"World Geodetic System 1984 (G1674)\"],MEMBER[\"World Geodetic System 1984 (G1762)\"],MEMBER[\"World Geodetic System 1984 (G2139)\"],MEMBER[\"World Geodetic System 1984 (G2296)\"],ELLIPSOID[\"WGS 84\",6378137,298.257223563,LENGTHUNIT[\"metre\",1]],ENSEMBLEACCURACY[2.0]],PRIMEM[\"Greenwich\",0,ANGLEUNIT[\"degree\",0.0174532925199433]],CS[ellipsoidal,2],AXIS[\"geodetic longitude (Lon)\",east,ORDER[1],ANGLEUNIT[\"degree\",0.0174532925199433]],AXIS[\"geodetic latitude (Lat)\",north,ORDER[2],ANGLEUNIT[\"degree\",0.0174532925199433]],USAGE[SCOPE[\"Not known.\"],AREA[\"World.\"],BBOX[-90,-180,90,180]],ID[\"OGC\",\"CRS84\"]]",
+      "crs_assumed_from_rfc7946": false,
+      "area_m2": 478496207.33439684,
+      "committed_hash_verified": true
+    }
+  },
+  "control_evidence": {
+    "path": "output/road_network_audit/jukrim/verified_20261112/pbf_results/evidence.json",
+    "sha256": "7fdee62d4bcf39f2095c7229281905a45d5531dbc7083622615fc30fa7b6d2dc"
+  },
+  "validation": {
+    "union": {
+      "valid": true,
+      "geometry_type": "Polygon",
+      "area_m2": 1099633046.4061227,
+      "area_km2": 1099.6330464061227,
+      "bounds_epsg5179": [
+        926010.2638300543,
+        1786330.4184509357,
+        961349.8555079999,
+        1841732.589040381
+      ],
+      "roundtrip_hausdorff_m": 2.0954757928848267e-09,
+      "roundtrip_relative_area_error": 8.672659661539797e-16
+    },
+    "buffer_2000m": {
+      "valid": true,
+      "geometry_type": "Polygon",
+      "area_m2": 1481032320.6609511,
+      "area_km2": 1481.0323206609512,
+      "bounds_epsg5179": [
+        924010.3746773598,
+        1784330.4242481976,
+        963349.7321796686,
+        1843732.5730596143
+      ],
+      "roundtrip_hausdorff_m": 2.4557839042657274e-09,
+      "roundtrip_relative_area_error": 1.609813477906827e-16
+    },
+    "buffer_5000m": {
+      "valid": true,
+      "geometry_type": "Polygon",
+      "area_m2": 2043666488.4514992,
+      "area_km2": 2043.6664884514992,
+      "bounds_epsg5179": [
+        921010.5409483182,
+        1781330.4329440903,
+        966349.5471871718,
+        1846732.5490884646
+      ],
+      "roundtrip_hausdorff_m": 1.9893058914033534e-09,
+      "roundtrip_relative_area_error": 2.3332435155034907e-15
+    }
+  },
+  "containment": {
+    "union_covers_both_counties": true,
+    "buffer_2000_covers_union": true,
+    "buffer_5000_covers_buffer_2000": true
+  },
+  "county_overlap_m2": 0.0,
+  "control_checks": [
+    {
+      "kind": "facility",
+      "id": "죽림리마을회관",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.836798762428,
+          36.3667897253441
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "way",
+      "id": "978430790",
+      "geometry_wgs84": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.8382393,
+            36.3646018
+          ],
+          [
+            126.8379474,
+            36.3651424
+          ],
+          [
+            126.8379092,
+            36.3654044
+          ],
+          [
+            126.8379697,
+            36.3656595
+          ],
+          [
+            126.8379977,
+            36.365926
+          ],
+          [
+            126.8379559,
+            36.3661919
+          ],
+          [
+            126.8379079,
+            36.3664163
+          ],
+          [
+            126.8378813,
+            36.3666613
+          ],
+          [
+            126.8378234,
+            36.3668072
+          ],
+          [
+            126.8377087,
+            36.3669465
+          ],
+          [
+            126.8375436,
+            36.3669544
+          ],
+          [
+            126.8373011,
+            36.3668408
+          ],
+          [
+            126.8371746,
+            36.3668188
+          ],
+          [
+            126.8369664,
+            36.3668731
+          ],
+          [
+            126.836872,
+            36.3668906
+          ],
+          [
+            126.8368028,
+            36.3669033
+          ],
+          [
+            126.8365976,
+            36.3667673
+          ],
+          [
+            126.8365198,
+            36.3665869
+          ],
+          [
+            126.8362047,
+            36.3663245
+          ],
+          [
+            126.8361282,
+            36.3662133
+          ],
+          [
+            126.8360518,
+            36.3660459
+          ],
+          [
+            126.8360236,
+            36.365953
+          ]
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552621",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8382393,
+          36.3646018
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552622",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8379474,
+          36.3651424
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863957",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8379092,
+          36.3654044
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552623",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8379697,
+          36.3656595
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863958",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8379977,
+          36.365926
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552625",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8379559,
+          36.3661919
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863959",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8379079,
+          36.3664163
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552626",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8378813,
+          36.3666613
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863960",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8378234,
+          36.3668072
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552627",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8377087,
+          36.3669465
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552628",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8375436,
+          36.3669544
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552629",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8373011,
+          36.3668408
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552630",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8371746,
+          36.3668188
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863956",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8369664,
+          36.3668731
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863947",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.836872,
+          36.3668906
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863955",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8368028,
+          36.3669033
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863954",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8365976,
+          36.3667673
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863953",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8365198,
+          36.3665869
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863952",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8362047,
+          36.3663245
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863951",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8361282,
+          36.3662133
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863950",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8360518,
+          36.3660459
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "11270863949",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8360236,
+          36.365953
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "way",
+      "id": "978430789",
+      "geometry_wgs84": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            126.8382393,
+            36.3646018
+          ],
+          [
+            126.83872,
+            36.363721
+          ]
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": true
+        },
+        "cheongyang": {
+          "covered": false,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "9053552621",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.8382393,
+          36.3646018
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": false,
+          "intersects": false
+        },
+        "cheongyang": {
+          "covered": true,
+          "intersects": true
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    },
+    {
+      "kind": "node",
+      "id": "1781315489",
+      "geometry_wgs84": {
+        "type": "Point",
+        "coordinates": [
+          126.83872,
+          36.363721
+        ]
+      },
+      "membership": {
+        "buyeo": {
+          "covered": true,
+          "intersects": true
+        },
+        "cheongyang": {
+          "covered": false,
+          "intersects": false
+        },
+        "union": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_2000m": {
+          "covered": true,
+          "intersects": true
+        },
+        "buffer_5000m": {
+          "covered": true,
+          "intersects": true
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "union_epsg4326.geojson": {
+      "sha256": "a619156ea6df7eb062553dba66f8496da4961b56408fe4b101e4caaf75c6fd73",
+      "bytes": 116758
+    },
+    "union_epsg5179.geojson": {
+      "sha256": "eaf75cbc97ee0467416232874c706322702687f297916c4e4dae379da1e477cd",
+      "bytes": 126888
+    },
+    "buffer_2000m_epsg4326.geojson": {
+      "sha256": "297d550b2b54e6b0ad5bfaec54aa24dce51695cd44bed67a7733ee824133623a",
+      "bytes": 326961
+    },
+    "buffer_2000m_epsg5179.geojson": {
+      "sha256": "d846fcfa457c055898073ec471a9003348cc3fe35323d2cea792ba61520c62ae",
+      "bytes": 325588
+    },
+    "buffer_5000m_epsg4326.geojson": {
+      "sha256": "6aa42277d671069c44a25c90334405fb7b13a6cbe65383ad7b7f4b53596a1437",
+      "bytes": 154290
+    },
+    "buffer_5000m_epsg5179.geojson": {
+      "sha256": "f5fbfbee412021c983e955e4e2b33e4ebc3bb1c98d7113430d52e833beb04c86",
+      "bytes": 153671
+    }
+  },
+  "preservation": {
+    "existing_tracked_files_checked": 101,
+    "unchanged": true
+  },
+  "scope": "Boundary polygons only; no road extraction, graph construction, PBF processing or facility access recalculation."
+}
