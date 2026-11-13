@@ -1,0 +1,194 @@
+[
+  {
+    "scope": "cheongyang",
+    "simplify": false,
+    "truncate_by_edge": false,
+    "nodes": 87,
+    "edges": 168,
+    "target_nodes_present": {
+      "9053552621": true,
+      "1781315489": false
+    },
+    "target_edge_counts": {
+      "978430790": 42,
+      "978430789": 0,
+      "166680097": 12
+    }
+  },
+  {
+    "scope": "cheongyang",
+    "simplify": false,
+    "truncate_by_edge": true,
+    "nodes": 89,
+    "edges": 172,
+    "target_nodes_present": {
+      "9053552621": true,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 42,
+      "978430789": 2,
+      "166680097": 14
+    }
+  },
+  {
+    "scope": "cheongyang",
+    "simplify": true,
+    "truncate_by_edge": false,
+    "nodes": 6,
+    "edges": 6,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": false
+    },
+    "target_edge_counts": {
+      "978430790": 0,
+      "978430789": 0,
+      "166680097": 0
+    }
+  },
+  {
+    "scope": "cheongyang",
+    "simplify": true,
+    "truncate_by_edge": true,
+    "nodes": 8,
+    "edges": 10,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 2,
+      "978430789": 2,
+      "166680097": 2
+    }
+  },
+  {
+    "scope": "buyeo",
+    "simplify": false,
+    "truncate_by_edge": false,
+    "nodes": 747,
+    "edges": 1496,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 0,
+      "978430789": 0,
+      "166680097": 406
+    }
+  },
+  {
+    "scope": "buyeo",
+    "simplify": false,
+    "truncate_by_edge": true,
+    "nodes": 749,
+    "edges": 1500,
+    "target_nodes_present": {
+      "9053552621": true,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 0,
+      "978430789": 2,
+      "166680097": 408
+    }
+  },
+  {
+    "scope": "buyeo",
+    "simplify": true,
+    "truncate_by_edge": false,
+    "nodes": 25,
+    "edges": 52,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 0,
+      "978430789": 0,
+      "166680097": 10
+    }
+  },
+  {
+    "scope": "buyeo",
+    "simplify": true,
+    "truncate_by_edge": true,
+    "nodes": 27,
+    "edges": 56,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 2,
+      "978430789": 2,
+      "166680097": 12
+    }
+  },
+  {
+    "scope": "union",
+    "simplify": false,
+    "truncate_by_edge": false,
+    "nodes": 834,
+    "edges": 1668,
+    "target_nodes_present": {
+      "9053552621": true,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 42,
+      "978430789": 2,
+      "166680097": 420
+    }
+  },
+  {
+    "scope": "union",
+    "simplify": false,
+    "truncate_by_edge": true,
+    "nodes": 834,
+    "edges": 1668,
+    "target_nodes_present": {
+      "9053552621": true,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 42,
+      "978430789": 2,
+      "166680097": 420
+    }
+  },
+  {
+    "scope": "union",
+    "simplify": true,
+    "truncate_by_edge": false,
+    "nodes": 31,
+    "edges": 62,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 2,
+      "978430789": 2,
+      "166680097": 12
+    }
+  },
+  {
+    "scope": "union",
+    "simplify": true,
+    "truncate_by_edge": true,
+    "nodes": 31,
+    "edges": 62,
+    "target_nodes_present": {
+      "9053552621": false,
+      "1781315489": true
+    },
+    "target_edge_counts": {
+      "978430790": 2,
+      "978430789": 2,
+      "166680097": 12
+    }
+  }
+]

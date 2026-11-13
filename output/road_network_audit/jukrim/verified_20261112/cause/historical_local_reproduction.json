@@ -1,0 +1,145 @@
+{
+  "cheongyang": {
+    "cache_entry": "korea-road-network/data/cache/3fff1da63c0ddca8286b3e19947894b97e522bc3.json",
+    "cache_sha256": "9d4dba036ff050a0515385cd86251f445fb04717fd0ae93788e4e7bf55210c11",
+    "response_timestamp": "2026-11-09T04:57:43Z",
+    "target_comparisons_to_pbf": {
+      "978430790": {
+        "nodes_equal": true,
+        "tags_equal": true,
+        "all_node_coordinates_equal": true
+      },
+      "978430789": {
+        "nodes_equal": true,
+        "tags_equal": true,
+        "all_node_coordinates_equal": true
+      },
+      "166680097": {
+        "nodes_equal": true,
+        "tags_equal": true,
+        "all_node_coordinates_equal": true
+      }
+    },
+    "local_way_count": 16,
+    "local_node_count": 588,
+    "additional_neighbor_way_ids": [],
+    "original_response_target_neighbors": {
+      "9053552621": [
+        1781315489,
+        9053552622
+      ],
+      "1781315489": [
+        1781315485,
+        1781315491,
+        9053552621
+      ],
+      "11270863949": [
+        11270863950
+      ]
+    },
+    "trials": [
+      {
+        "simplify": false,
+        "truncate_by_edge": false,
+        "counts": {
+          "978430790": 42,
+          "978430789": 0,
+          "166680097": 12
+        },
+        "endpoint_11270863949_degree": 2
+      },
+      {
+        "simplify": true,
+        "truncate_by_edge": false,
+        "counts": {
+          "978430790": 0,
+          "978430789": 0,
+          "166680097": 0
+        },
+        "endpoint_11270863949_degree": 0
+      },
+      {
+        "simplify": true,
+        "truncate_by_edge": true,
+        "counts": {
+          "978430790": 2,
+          "978430789": 2,
+          "166680097": 2
+        },
+        "endpoint_11270863949_degree": 2
+      }
+    ]
+  },
+  "buyeo": {
+    "cache_entry": "korea-road-network/data/cache/6c12d2c76ed93eb5c2f3126dc3772558995d4d76.json",
+    "cache_sha256": "fd9f742073be317b12220ebec8da47ebc341200dddc250ad190e82c87f85827f",
+    "response_timestamp": "2026-11-09T04:54:30Z",
+    "target_comparisons_to_pbf": {
+      "978430790": {
+        "nodes_equal": true,
+        "tags_equal": true,
+        "all_node_coordinates_equal": true
+      },
+      "978430789": {
+        "nodes_equal": true,
+        "tags_equal": true,
+        "all_node_coordinates_equal": true
+      },
+      "166680097": {
+        "nodes_equal": true,
+        "tags_equal": true,
+        "all_node_coordinates_equal": true
+      }
+    },
+    "local_way_count": 33,
+    "local_node_count": 810,
+    "additional_neighbor_way_ids": [],
+    "original_response_target_neighbors": {
+      "9053552621": [
+        1781315489,
+        9053552622
+      ],
+      "1781315489": [
+        1781315485,
+        1781315491,
+        9053552621
+      ],
+      "11270863949": [
+        11270863950
+      ]
+    },
+    "trials": [
+      {
+        "simplify": false,
+        "truncate_by_edge": false,
+        "counts": {
+          "978430790": 0,
+          "978430789": 0,
+          "166680097": 406
+        },
+        "endpoint_11270863949_degree": null
+      },
+      {
+        "simplify": true,
+        "truncate_by_edge": false,
+        "counts": {
+          "978430790": 0,
+          "978430789": 0,
+          "166680097": 10
+        },
+        "endpoint_11270863949_degree": null
+      },
+      {
+        "simplify": true,
+        "truncate_by_edge": true,
+        "counts": {
+          "978430790": 2,
+          "978430789": 2,
+          "166680097": 12
+        },
+        "endpoint_11270863949_degree": 2
+      }
+    ]
+  },
+  "network_attempts": []
+}

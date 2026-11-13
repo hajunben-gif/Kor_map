@@ -1,0 +1,30 @@
+{
+  "verified_on_kst": "2026-11-13",
+  "python": "3.11.5",
+  "packages": {
+    "osmium": "4.2.0",
+    "osmnx": "2.1.1",
+    "shapely": "2.2.0",
+    "pyproj": "3.7.2"
+  },
+  "synthetic_pbf_tests": {
+    "passed": 12,
+    "command": "python -m unittest discover -s tests -p test_jukrim_pbf_audit.py -v"
+  },
+  "historical_local_configurations": {
+    "passed": 6,
+    "command": "python scripts/jukrim_boundary_regression.py",
+    "network_attempts": 0
+  },
+  "integrity": {
+    "protected_files": 104,
+    "changed_files": [],
+    "preserved_manifest_files": 19,
+    "manifest_hashes_match": true,
+    "readable_separate_utf8_reports": true
+  },
+  "existing_graphml_shelter_csv_results_and_source_pbf_unchanged": true,
+  "national_pbf_reprocessed": false,
+  "county_graphs_rebuilt": false,
+  "unrelated_untracked_Microsoft_directory": "Not staged or modified"
+}

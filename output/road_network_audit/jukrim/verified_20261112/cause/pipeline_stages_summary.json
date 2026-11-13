@@ -1,0 +1,428 @@
+{
+  "cheongyang": {
+    "simplified_edge_endpoint_positions": {
+      "978430790": [
+        {
+          "u": 1781315489,
+          "v": 11270863949,
+          "u_position": "outside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        },
+        {
+          "u": 11270863949,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "outside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        }
+      ],
+      "978430789": [
+        {
+          "u": 1781315489,
+          "v": 11270863949,
+          "u_position": "outside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        },
+        {
+          "u": 11270863949,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "outside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        }
+      ],
+      "166680097": [
+        {
+          "u": 1781315256,
+          "v": 6467162486,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": [
+            166680097,
+            1238001381,
+            1238001382
+          ]
+        },
+        {
+          "u": 1781315489,
+          "v": 6467162486,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 1781315489,
+          "v": 11270845363,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 1781316494,
+          "v": 11270887011,
+          "u_position": "inside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6356009116,
+          "v": 11270845363,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6356009116,
+          "v": 11270887011,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6467162486,
+          "v": 1781315256,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": [
+            166680097,
+            1238001381,
+            1238001382
+          ]
+        },
+        {
+          "u": 6467162486,
+          "v": 1781315489,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270845363,
+          "v": 1781315489,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270845363,
+          "v": 6356009116,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270887011,
+          "v": 6356009116,
+          "u_position": "outside",
+          "v_position": "outside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270887011,
+          "v": 1781316494,
+          "u_position": "outside",
+          "v_position": "inside",
+          "osmid": 166680097
+        }
+      ]
+    }
+  },
+  "buyeo": {
+    "simplified_edge_endpoint_positions": {
+      "978430790": [
+        {
+          "u": 1781315489,
+          "v": 11270863949,
+          "u_position": "inside",
+          "v_position": "outside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        },
+        {
+          "u": 11270863949,
+          "v": 1781315489,
+          "u_position": "outside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        }
+      ],
+      "978430789": [
+        {
+          "u": 1781315489,
+          "v": 11270863949,
+          "u_position": "inside",
+          "v_position": "outside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        },
+        {
+          "u": 11270863949,
+          "v": 1781315489,
+          "u_position": "outside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        }
+      ],
+      "166680097": [
+        {
+          "u": 1781315256,
+          "v": 6467162486,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            166680097,
+            1238001381,
+            1238001382
+          ]
+        },
+        {
+          "u": 1781315489,
+          "v": 6467162486,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 1781315489,
+          "v": 11270845363,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 1781316494,
+          "v": 11270887011,
+          "u_position": "outside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6356009116,
+          "v": 11270845363,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6356009116,
+          "v": 11270887011,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6467162486,
+          "v": 1781315256,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            166680097,
+            1238001381,
+            1238001382
+          ]
+        },
+        {
+          "u": 6467162486,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270845363,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270845363,
+          "v": 6356009116,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270887011,
+          "v": 6356009116,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270887011,
+          "v": 1781316494,
+          "u_position": "inside",
+          "v_position": "outside",
+          "osmid": 166680097
+        }
+      ]
+    }
+  },
+  "union": {
+    "simplified_edge_endpoint_positions": {
+      "978430790": [
+        {
+          "u": 1781315489,
+          "v": 11270863949,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        },
+        {
+          "u": 11270863949,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        }
+      ],
+      "978430789": [
+        {
+          "u": 1781315489,
+          "v": 11270863949,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        },
+        {
+          "u": 11270863949,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            978430789,
+            978430790
+          ]
+        }
+      ],
+      "166680097": [
+        {
+          "u": 1781315256,
+          "v": 6467162486,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            166680097,
+            1238001381,
+            1238001382
+          ]
+        },
+        {
+          "u": 1781315489,
+          "v": 6467162486,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 1781315489,
+          "v": 11270845363,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 1781316494,
+          "v": 11270887011,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6356009116,
+          "v": 11270845363,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6356009116,
+          "v": 11270887011,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 6467162486,
+          "v": 1781315256,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": [
+            166680097,
+            1238001381,
+            1238001382
+          ]
+        },
+        {
+          "u": 6467162486,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270845363,
+          "v": 1781315489,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270845363,
+          "v": 6356009116,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270887011,
+          "v": 6356009116,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        },
+        {
+          "u": 11270887011,
+          "v": 1781316494,
+          "u_position": "inside",
+          "v_position": "inside",
+          "osmid": 166680097
+        }
+      ]
+    }
+  }
+}

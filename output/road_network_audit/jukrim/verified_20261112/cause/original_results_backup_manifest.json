@@ -1,0 +1,22 @@
+{
+  "comparison.csv": {
+    "source_sha256": "801852ba44ef32ab22f8abf12f2d7be1a56601365f388135c353a5706bf91445",
+    "backup_sha256": "801852ba44ef32ab22f8abf12f2d7be1a56601365f388135c353a5706bf91445"
+  },
+  "roads.csv": {
+    "source_sha256": "0415734821a1144d99e8fcc16b9137a2bff634bf00982a24444c7382d5e0f7ec",
+    "backup_sha256": "0415734821a1144d99e8fcc16b9137a2bff634bf00982a24444c7382d5e0f7ec"
+  },
+  "evidence.json": {
+    "source_sha256": "7fdee62d4bcf39f2095c7229281905a45d5531dbc7083622615fc30fa7b6d2dc",
+    "backup_sha256": "7fdee62d4bcf39f2095c7229281905a45d5531dbc7083622615fc30fa7b6d2dc"
+  },
+  "run_summary.json": {
+    "source_sha256": "a4777977d1ed9227d9de23988b0b58e75b0dfe690ed2aed58c9cb8d3864b3c0a",
+    "backup_sha256": "a4777977d1ed9227d9de23988b0b58e75b0dfe690ed2aed58c9cb8d3864b3c0a"
+  },
+  "report.md": {
+    "source_sha256": "0daa62da0ff40ed2032c6c24216ca3c29dd1287140b899a81a91a1ef0de3c139",
+    "backup_sha256": "0daa62da0ff40ed2032c6c24216ca3c29dd1287140b899a81a91a1ef0de3c139"
+  }
+}

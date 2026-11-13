@@ -8,3 +8,8 @@ data/
 .env.*
 !.env.example
 work/
+
+# PBF sources and extraction scratch must stay outside Git
+*.pbf
+*.pbf.*
+node-index.sqlite*

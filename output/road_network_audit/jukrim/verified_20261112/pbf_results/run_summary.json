@@ -1,0 +1,212 @@
+{
+  "analysis_complete": true,
+  "facility": {
+    "name": "죽림리마을회관",
+    "latitude": 36.3667897253441,
+    "longitude": 126.836798762428
+  },
+  "scope": {
+    "facilities": 1,
+    "radius_m": 2000,
+    "distance_crs": "EPSG:5179",
+    "whole_way_geometry_preserved": true
+  },
+  "road_way_count": 90,
+  "required_nodes": 2566,
+  "comparison": [
+    {
+      "scenario": "existing_cheongyang_drive",
+      "distance_m": 1359.55122,
+      "way_id": "978430786"
+    },
+    {
+      "scenario": "existing_two_county_drive_reference",
+      "distance_m": 259.8930035442013,
+      "way_id": 166680097
+    },
+    {
+      "scenario": "pbf_drive",
+      "distance_m": 9.514797320787055,
+      "way_id": 978430790
+    },
+    {
+      "scenario": "pbf_drive_service",
+      "distance_m": 9.514797320787055,
+      "way_id": 978430790
+    },
+    {
+      "scenario": "pbf_generic_highway",
+      "distance_m": 9.514797320787055,
+      "way_id": 978430790
+    }
+  ],
+  "nearest": {
+    "drive": {
+      "status": "measured",
+      "distance_m": 9.514797320787055,
+      "way_id": 978430790,
+      "nearest_point": {
+        "longitude": 126.83673153761488,
+        "latitude": 36.36685606966256
+      },
+      "highway": "residential",
+      "tags": {
+        "highway": "residential"
+      },
+      "vehicle_assessment": {
+        "status": "no_explicit_prohibition_found_not_field_verified",
+        "controlling_access_key": null,
+        "controlling_access_value": null,
+        "vehicle_related_tags": {},
+        "conditional_tags": {},
+        "truck_or_relief_vehicle_usable_confirmed": false
+      },
+      "existing_membership": {
+        "cheongyang": false,
+        "buyeo": false
+      },
+      "filter_rejections": {
+        "drive": [],
+        "drive_service": []
+      }
+    },
+    "drive_service": {
+      "status": "measured",
+      "distance_m": 9.514797320787055,
+      "way_id": 978430790,
+      "nearest_point": {
+        "longitude": 126.83673153761488,
+        "latitude": 36.36685606966256
+      },
+      "highway": "residential",
+      "tags": {
+        "highway": "residential"
+      },
+      "vehicle_assessment": {
+        "status": "no_explicit_prohibition_found_not_field_verified",
+        "controlling_access_key": null,
+        "controlling_access_value": null,
+        "vehicle_related_tags": {},
+        "conditional_tags": {},
+        "truck_or_relief_vehicle_usable_confirmed": false
+      },
+      "existing_membership": {
+        "cheongyang": false,
+        "buyeo": false
+      },
+      "filter_rejections": {
+        "drive": [],
+        "drive_service": []
+      }
+    },
+    "generic_highway": {
+      "status": "measured",
+      "distance_m": 9.514797320787055,
+      "way_id": 978430790,
+      "nearest_point": {
+        "longitude": 126.83673153761488,
+        "latitude": 36.36685606966256
+      },
+      "highway": "residential",
+      "tags": {
+        "highway": "residential"
+      },
+      "vehicle_assessment": {
+        "status": "no_explicit_prohibition_found_not_field_verified",
+        "controlling_access_key": null,
+        "controlling_access_value": null,
+        "vehicle_related_tags": {},
+        "conditional_tags": {},
+        "truck_or_relief_vehicle_usable_confirmed": false
+      },
+      "existing_membership": {
+        "cheongyang": false,
+        "buyeo": false
+      },
+      "filter_rejections": {
+        "drive": [],
+        "drive_service": []
+      }
+    }
+  },
+  "roads_within_50m": [
+    {
+      "way_id": 978430790,
+      "distance_m": 9.514797320787055,
+      "tags": {
+        "highway": "residential"
+      },
+      "existing_membership": {
+        "cheongyang": false,
+        "buyeo": false
+      },
+      "filter_rejections": {
+        "drive": [],
+        "drive_service": []
+      }
+    },
+    {
+      "way_id": 1216387336,
+      "distance_m": 10.613328445041272,
+      "tags": {
+        "highway": "service"
+      },
+      "existing_membership": {
+        "cheongyang": false,
+        "buyeo": false
+      },
+      "filter_rejections": {
+        "drive": [
+          {
+            "key": "highway",
+            "operator": "!~",
+            "filter_value": "abandoned|bridleway|bus_guideway|construction|corridor|cycleway|elevator|escalator|footway|no|path|pedestrian|planned|platform|proposed|raceway|razed|rest_area|service|services|steps|track",
+            "actual": "service"
+          }
+        ],
+        "drive_service": []
+      }
+    }
+  ],
+  "incomplete_objects": [
+    {
+      "way_id": 842288033,
+      "nodes": [
+        7857923355
+      ],
+      "tags": {
+        "bridge": "yes",
+        "highway": "secondary",
+        "layer": "1",
+        "name": "무계로",
+        "name:en": "Mugye-ro",
+        "name:ko": "무계로",
+        "oneway": "yes"
+      },
+      "reason": "fewer than two nodes",
+      "missing_node_ids": [],
+      "classification": "outside",
+      "known_coordinates": {
+        "7857923355": [
+          128.8188882,
+          35.2016806
+        ]
+      },
+      "known_point_distances_m": {
+        "7857923355": 220873.81429764384
+      }
+    }
+  ],
+  "execution": {
+    "status": "success",
+    "error": null,
+    "finished": "2026-11-12T06:49:37.455552+00:00",
+    "network_attempts": [],
+    "checked_files": 88,
+    "changed_files": [],
+    "pbf_stat_unchanged": true
+  },
+  "historical_omission_cause": "Undetermined. Nearest current residential way passes both filters but is absent from both stored graphs. Current tags cannot establish historical filter, cache, or clipping causes.",
+  "interrupted_run": "C:\\Users\\Public\\Documents\\ESTsoft\\CreatorTemp\\Kor_map-jukrim-rerun-20261112T051527Z",
+  "copy_optimization": "Selected local way/node ID sets replace nationwide per-object SQLite membership queries; 12 synthetic tests passed; fresh extraction without reuse of either interrupted or previous failed index."
+}

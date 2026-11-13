@@ -1,0 +1,2 @@
+# Preserve archived evidence bytes and SHA-256 across Windows/Linux checkouts.
+/output/road_network_audit/jukrim/verified_20261112/** -text

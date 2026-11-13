@@ -1,0 +1,33 @@
+{
+  "archive_matches": {
+    "extract.py": {
+      "equal_after_newline_normalization": true,
+      "normalized_sha256": "8a595b45d76cae753968aa8818af984e4f393f008d2635fec62fe09312e6f8d4"
+    },
+    "data/20261109T045434949410Z/cheongyang/network.graphml": {
+      "equal_after_newline_normalization": true,
+      "normalized_sha256": "07fc38c0b875e9fbdc9c594345338c9ccc17fa751a538a7877d4d86f24dbdc41"
+    },
+    "data/20261109T045434949410Z/buyeo/network.graphml": {
+      "equal_after_newline_normalization": true,
+      "normalized_sha256": "83ffa49283471f40b03139dbf03c358bf0854d480d64d7e9e6297bfc7a283942"
+    },
+    "data/20261109T045434949410Z/cheongyang/boundary.geojson": {
+      "equal_after_newline_normalization": true,
+      "normalized_sha256": "5c6a5bdc579d1fad2d525e05badddc3970f3f0d95158b93955fe408ad9c06c7d"
+    },
+    "data/20261109T045434949410Z/buyeo/boundary.geojson": {
+      "equal_after_newline_normalization": true,
+      "normalized_sha256": "758dc4517a2092bea8bfe72a3073aa9503510735ae1ccb12410c0edd713d87b9"
+    }
+  },
+  "regenerated_query_cache_filenames": {
+    "cheongyang": [
+      "bae4a6dddd63de276e79fb0c90ba5ad1a95c8eaf.json"
+    ],
+    "buyeo": [
+      "25a06dc1aaa34f7c0b0c776aa5eaf6e5a3971a75.json"
+    ]
+  },
+  "original_cache_key_match_proven": false
+}

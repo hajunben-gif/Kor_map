@@ -1,0 +1,61 @@
+{
+  "status": "completed",
+  "conclusion": "Verified local loss mechanism: OSMnx 2.1.1 simplification merges access and bridge into a cross-county edge; final polygon truncation with truncate_by_edge=False removes the edge from both county graphs.",
+  "historical_reconstruction_scope": "Only local saved PBF and archived-cache subsets; not full county/national reconstruction. Exact historical HTTP request/cache-key correspondence remains unproved.",
+  "key_nodes": [
+    {
+      "way_id": "978430790",
+      "node_order": "0",
+      "node_id": "9053552621",
+      "longitude": "126.8382393",
+      "latitude": "36.3646018",
+      "cheongyang_position": "inside",
+      "cheongyang_boundary_distance_m": "70.38584546547791",
+      "cheongyang_graph_node_present": "False",
+      "cheongyang_existing_edge_distance_m": "1095.4799905269601",
+      "buyeo_position": "outside",
+      "buyeo_boundary_distance_m": "70.38584546547791",
+      "buyeo_graph_node_present": "False",
+      "buyeo_existing_edge_distance_m": "105.78312356371573"
+    },
+    {
+      "way_id": "978430789",
+      "node_order": "1",
+      "node_id": "1781315489",
+      "longitude": "126.83872",
+      "latitude": "36.363721",
+      "cheongyang_position": "outside",
+      "cheongyang_boundary_distance_m": "36.277640170236985",
+      "cheongyang_graph_node_present": "False",
+      "cheongyang_existing_edge_distance_m": "995.5065129901354",
+      "buyeo_position": "inside",
+      "buyeo_boundary_distance_m": "36.27764017023698",
+      "buyeo_graph_node_present": "True",
+      "buyeo_existing_edge_distance_m": "0.0"
+    },
+    {
+      "way_id": "978430790",
+      "node_order": "21",
+      "node_id": "11270863949",
+      "longitude": "126.8360236",
+      "latitude": "36.365953",
+      "cheongyang_position": "inside",
+      "cheongyang_boundary_distance_m": "155.84917999968658",
+      "cheongyang_graph_node_present": "True",
+      "cheongyang_existing_edge_distance_m": "1341.6040507201114",
+      "buyeo_position": "outside",
+      "buyeo_boundary_distance_m": "155.84917999968658",
+      "buyeo_graph_node_present": "False",
+      "buyeo_existing_edge_distance_m": "190.37523319339675"
+    }
+  ],
+  "access_and_bridge_absent_as_scalar_and_list_osmid": true,
+  "access_all_22_nodes_inside_cheongyang": true,
+  "historical_local_tests_passed": 6,
+  "pbf_local_trials_passed": 12,
+  "archived_target_ways_nodes_tags_coordinates_equal_to_pbf": true,
+  "network_requests": 0,
+  "national_pbf_opened": false,
+  "recommended_boundary_policy": "Preserve cross-boundary edges and connected external nodes; truncate_by_edge=True passes this regression. Use a joint/buffered analysis scope rather than independent destructive county clips.",
+  "source_code_modified": false
+}

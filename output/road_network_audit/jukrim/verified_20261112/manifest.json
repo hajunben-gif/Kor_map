@@ -1,0 +1,152 @@
+{
+  "backup_directory": "C:\\Users\\user\\Documents\\Kor_map_jukrim_backup_20261112",
+  "files": [
+    {
+      "source": "comparison.csv",
+      "destination": "pbf_results/comparison.csv",
+      "sha256": "801852ba44ef32ab22f8abf12f2d7be1a56601365f388135c353a5706bf91445",
+      "bytes": 279,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "roads.csv",
+      "destination": "pbf_results/roads.csv",
+      "sha256": "0415734821a1144d99e8fcc16b9137a2bff634bf00982a24444c7382d5e0f7ec",
+      "bytes": 40989,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "evidence.json",
+      "destination": "pbf_results/evidence.json",
+      "sha256": "7fdee62d4bcf39f2095c7229281905a45d5531dbc7083622615fc30fa7b6d2dc",
+      "bytes": 398206,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "run_summary.json",
+      "destination": "pbf_results/run_summary.json",
+      "sha256": "a4777977d1ed9227d9de23988b0b58e75b0dfe690ed2aed58c9cb8d3864b3c0a",
+      "bytes": 6074,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "report.md",
+      "destination": "pbf_results/report.md",
+      "sha256": "0daa62da0ff40ed2032c6c24216ca3c29dd1287140b899a81a91a1ef0de3c139",
+      "bytes": 3355,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\report.md",
+      "destination": "cause/report.md",
+      "sha256": "93d27fb71f5a7b5e6172608ee0305c1d6c1f23ee97f99a8f90694fcb53b311f8",
+      "bytes": 7847,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\conclusion.json",
+      "destination": "cause/conclusion.json",
+      "sha256": "6eadd0ceab98ba6ce355e610d6116bd5e79d68c43b91ffbc7e7c0dc3a7687a4f",
+      "bytes": 2806,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\way_facts.json",
+      "destination": "cause/way_facts.json",
+      "sha256": "21edb213319d2dae938b2ce94b2d8912dda3e9e60844a5e67ffbaef73900ae8e",
+      "bytes": 9468,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\node_boundary_comparison.csv",
+      "destination": "cause/node_boundary_comparison.csv",
+      "sha256": "b48b54e93b16db811aa6680e933e5661558aa66ee13037312601b7cd6f155981",
+      "bytes": 34181,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\historical_local_reproduction.json",
+      "destination": "cause/historical_local_reproduction.json",
+      "sha256": "42d9d68f137b4ddca03a3d709ed1a0a069dc97de7b98fa50303afaa04df7fbb1",
+      "bytes": 3677,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\metadata_comparison.json",
+      "destination": "cause/metadata_comparison.json",
+      "sha256": "91e80b763af0d90b5b1c1b60c1c9fece2d9cb213e78b1ad3ef64e53af81ecf5b",
+      "bytes": 2438,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\validation.json",
+      "destination": "cause/validation.json",
+      "sha256": "e3c6e0116df43def9717615bab4c97845f8d9ed16a5c32ecde32f91a408b1738",
+      "bytes": 211,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\archived_cache_findings.json",
+      "destination": "cause/archived_cache_findings.json",
+      "sha256": "61e2fd0e076d831034fce0e8ae07ca692c3317f5414607019fe51f6863c45e1b",
+      "bytes": 14935,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\original_results_backup_manifest.json",
+      "destination": "cause/original_results_backup_manifest.json",
+      "sha256": "01db3120878d6aec82647b2293bbac75d1826ae6ab2ffdad98da4216d01238b5",
+      "bytes": 1034,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\cheongyang_historical_local_input.json",
+      "destination": "cause/cheongyang_historical_local_input.json",
+      "sha256": "3a30517b226c13d4d664f3a2adfac586c87aa79321c53dc7cc88e5eb3f485882",
+      "bytes": 83889,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation\\buyeo_historical_local_input.json",
+      "destination": "cause/buyeo_historical_local_input.json",
+      "sha256": "f12ff254b57f8f96f4dc27d6d757557eb6fa4ffe3dbb3fb8fc16ab7262423990",
+      "bytes": 117840,
+      "mode": "byte_identical_copy"
+    },
+    {
+      "source": "investigation/reproduction_trials.json",
+      "source_sha256": "3633d683fd0adc38aabba740b9e52408e85a0eac9c7caa7cfdf9c9bdec33ac80",
+      "destination": "cause/reproduction_trials_summary.json",
+      "sha256": "03e541f98ed1d3f177e360f7c0e9d72932f8d214fc5bfdf3a686a3da6b9f6802",
+      "bytes": 3915,
+      "mode": "derived_summary_geometry_or_query_text_omitted"
+    },
+    {
+      "source": "investigation/pipeline_stages.json",
+      "source_sha256": "77334d197c9d2a4ad918c6966f9d9f443ec08e4a0099f0208c23b3ebb3042b40",
+      "destination": "cause/pipeline_stages_summary.json",
+      "sha256": "065c9288985328b57318fac97adc562879f330263535ffa93dc18a2d09c67a97",
+      "bytes": 10254,
+      "mode": "derived_summary_geometry_or_query_text_omitted"
+    },
+    {
+      "source": "investigation/archive_provenance.json",
+      "source_sha256": "bf1b7392c7d1b893ff55e3cb0d500f3d6eed2fd1bffb94958f0b7d2a0e58216b",
+      "destination": "cause/archive_provenance_summary.json",
+      "sha256": "06f825175981300f0d4a17a9ad3a142b366cb497840f1a4f0555199fe2dcadce",
+      "bytes": 1327,
+      "mode": "derived_summary_geometry_or_query_text_omitted"
+    }
+  ],
+  "excluded": [
+    "national PBF",
+    "SQLite indexes and journals",
+    "temporary execution directories",
+    "downloads/*.zip",
+    "duplicate full pipeline/trial geometry dumps",
+    "hard-coded temporary-path investigation scripts",
+    "duplicate full PBF-local reproduction input",
+    "installed third-party OSMnx source copy"
+  ],
+  "original_cause_report_encoding": "Question marks already present in source bytes; retained unchanged. Read README.md for a separately authored UTF-8 explanation."
+}

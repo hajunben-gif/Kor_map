@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "pbf_local_configurations": 12,
+  "historical_local_configurations": 6,
+  "protected_files": 60,
+  "changed_files": [],
+  "network_attempts": 0,
+  "national_pbf_opened": false
+}

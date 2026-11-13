@@ -1,0 +1,69 @@
+{
+  "osmnx_version": "2.1.1",
+  "graphs": {
+    "cheongyang": {
+      "region": "청양군",
+      "request_started_at_utc": "2026-11-09T04:55:44.536465+00:00",
+      "extracted_at_utc": "2026-11-09T04:59:04.557836+00:00",
+      "source": "https://www.openstreetmap.org",
+      "license": "ODbL 1.0",
+      "boundary": {
+        "type": "Nominatim administrative relation",
+        "osm_id": 7619553,
+        "display_name": "Cheongyang-gun, South Chungcheong, South Korea"
+      },
+      "crs": "epsg:4326",
+      "length_unit": "metre",
+      "network_type": "drive",
+      "retain_all": true,
+      "simplify": true,
+      "truncate_by_edge": false,
+      "osmnx_version": "2.1.1",
+      "overpass_url": "https://overpass-api.de/api",
+      "temporal_note": "Extraction time, not a guaranteed historical OSM snapshot; cache may predate this run.",
+      "statistics": {
+        "nodes": 2510,
+        "directed_edges": 6077,
+        "directed_length_m": 1717295.6806198752,
+        "undirected_length_m": 923933.3026229732,
+        "weak_components": 15,
+        "strong_components": 41
+      }
+    },
+    "buyeo": {
+      "region": "부여군",
+      "request_started_at_utc": "2026-11-09T04:54:34.949498+00:00",
+      "extracted_at_utc": "2026-11-09T04:55:41.351316+00:00",
+      "source": "https://www.openstreetmap.org",
+      "license": "ODbL 1.0",
+      "boundary": {
+        "type": "Nominatim administrative relation",
+        "osm_id": 7578882,
+        "display_name": "Buyeo-gun, South Chungcheong, South Korea"
+      },
+      "crs": "epsg:4326",
+      "length_unit": "metre",
+      "network_type": "drive",
+      "retain_all": true,
+      "simplify": true,
+      "truncate_by_edge": false,
+      "osmnx_version": "2.1.1",
+      "overpass_url": "https://overpass-api.de/api",
+      "temporal_note": "Extraction time, not a guaranteed historical OSM snapshot; cache may predate this run.",
+      "statistics": {
+        "nodes": 5230,
+        "directed_edges": 12676,
+        "directed_length_m": 2803376.219450741,
+        "undirected_length_m": 1537128.7092532725,
+        "weak_components": 22,
+        "strong_components": 47
+      }
+    }
+  },
+  "pbf_timestamp": "2026-11-09T21:22:17Z",
+  "way_timestamps": {
+    "978430790": "2023-10-18T05:04:21+00:00",
+    "978430789": "2021-09-01T13:33:11+00:00",
+    "166680097": "2024-01-08T09:19:37+00:00"
+  }
+}
