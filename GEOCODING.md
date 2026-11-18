@@ -1,10 +1,20 @@
 # Kakao 주소 지오코딩: 도로망 연결 전 단계
 
+## 최신 완료 상태 — 2026-11-18 문서 갱신
+
+후속 실제 GitHub Actions 조회와 수동 병합을 통해 **대상 147개 중 좌표 146개를 확보**했습니다. Kakao Local API 성공 142개, 사용자 제공 Google Maps 수동 보완 4개이며, 청양군 대동마을회관 1개는 좌표 미확보로 남아 있습니다.
+
+최신 기준은 [최종 시설 CSV](data/processed/shelters_final_147.csv), [시설 검증 보고서](data/processed/shelters_validation_report.json), [실제 Actions 원본 CSV](output/manual_merge/kakao_actions_original.csv), [수동 병합 기록](output/manual_merge/README.md)입니다. 이후 [시설별 최근접 도로 직선거리 예비 분석](data/processed/shelters_road_access_report.json)도 좌표 보유 146개에 대해 완료했습니다. 실제 진입로 연결·주행거리 계산과는 다릅니다.
+
+Kakao API는 **과거 실제 호출에 성공**했지만 현재 실행 환경의 `KAKAO_REST_API_KEY` 설정 여부·유효성·네트워크 접속 가능성과는 별개입니다. 이번 문서 갱신에서는 키나 접속 상태를 검사하지 않았습니다. 재실행할 환경에서 별도로 준비해야 하며 키를 Git에 기록하지 않습니다.
+
+아래의 호출 0회·인증 대기 표와 `output/geocoding_summary.json`은 **후속 성공 이전 초기 실행 당시의 기록**입니다. 이 이력은 보존하며, 현재 최종 좌표 상태로 해석하지 않습니다. 프로젝트 전체 진행 상황은 [README.md](README.md)를 참고하세요.
+
 `geocode_shelters.py`는 CP949 시설 CSV에서 부여군30곳·청양군117곳만 선택해 Kakao Local `/v2/local/search/address.json`으로 주소를 조회합니다. 도로망 연결, 진입점 생성 또는 GraphML 변경은 하지 않습니다.
 
-## 현재 실제 실행 상태
+## 초기 실제 실행 이력 — 인증 대기 당시
 
-업로드한 원본은 1,757행, 대상은 부여군30행·청양군117행입니다. 147개 주소는 서로 다르며, 주소 누락은 없습니다. 현재 `.env`와 `KAKAO_REST_API_KEY`가 없어 **Kakao 호출은 0회**입니다. `output/shelters_geocoded.csv`는 좌표를 채운 결과가 아니라, 147행 모두 `pending_missing_api_key`인 대기 결과입니다. 두 HTML은 군 경계와 안내문만 표시하며 시설 마커가 없습니다. 주소 검색이나 공간 검증을 실제 시설 좌표로 완료했다고 해석하면 안 됩니다.
+업로드한 원본은 1,757행, 대상은 부여군30행·청양군117행입니다. 147개 주소는 서로 다르며, 주소 누락은 없습니다. 당시 `.env`와 `KAKAO_REST_API_KEY`가 없어 **Kakao 호출은 0회**였습니다. `output/shelters_geocoded.csv`는 좌표를 채운 결과가 아니라, 147행 모두 `pending_missing_api_key`인 대기 결과입니다. 두 HTML은 군 경계와 안내문만 표시하며 시설 마커가 없습니다. 주소 검색이나 공간 검증을 실제 시설 좌표로 완료했다고 해석하면 안 됩니다.
 
 | 시군 | 대상 | 성공 | 실패 | 수동검토 | 인증 대기 | 성공률 |
 |---|---:|---:|---:|---:|---:|---|
@@ -25,7 +35,7 @@ notepad .env
 
 `.env`에서 빈 `KAKAO_REST_API_KEY=` 뒤에 본인의 Kakao REST API 키를 입력하고 저장합니다. JavaScript 키나 Admin 키 대신 **REST API 키**를 사용합니다. 실제 키를 코드·README·채팅·GitHub에 쓰지 않습니다. `.env`, `.env.*`는 Git에서 제외하고 값이 비어 있는 `.env.example`만 공유합니다. 환경에 이미 같은 변수가 있으면 기존 환경변수를 우선합니다.
 
-원본 CSV를 `inputs` 폴더에 둔 다음 아래 명령을 실행합니다. 입력 원본 CSV는 저장소에 포함하지 않았습니다.
+현재 저장소의 `inputs` 폴더에는 아래 원본 CP949 CSV가 포함되어 있습니다. 아래 명령은 필요 시 새로 조회하기 위한 재실행 안내입니다. 기존 완료 결과 확인을 위해 다시 호출할 필요는 없습니다.
 
 ```powershell
 python geocode_shelters.py --csv "inputs/충청남도_재난안전포털 내 이재민 임시주거시설 정보_20251130.csv"
@@ -41,7 +51,9 @@ python geocode_shelters.py --csv "inputs/충청남도_재난안전포털 내 이
 --attempts 3
 ```
 
-## 출력
+## 지오코딩 스크립트 출력 — 최종 병합본과 구분
+
+아래 기본 출력 경로에는 초기 인증 대기 실행의 보존본이 있습니다. 최신 최종 좌표는 상단의 `data/processed/shelters_final_147.csv`를 사용합니다. 재실행 시 기존 기록을 보존하려면 새 `--output` 경로를 지정하세요.
 
 - `output/shelters_geocoded.csv`: **원본 9개 컬럼을 순서·값 그대로 유지**하고 `latitude,longitude,geocoding_status,matched_address`와 오류/검증/캐시/시각 컬럼을 추가. UTF-8-SIG라 Excel에서 한글을 읽을 수 있습니다. 입력은 CP949입니다.
 - `output/geocoding_summary.json`: 시군별 성공/실패/수동검토/대기 건수, 성공률, API 호출 수, 원본·경계 SHA-256, 좌표계.

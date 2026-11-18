@@ -1,90 +1,95 @@
-# 부여군·청양군 자동차 도로망
+# 부여군·청양군 긴급구호 수송 네트워크 기초자료
 
-임시주거시설의 Kakao 주소 지오코딩은 [GEOCODING.md](GEOCODING.md)를 참고하세요. 현재는 API 키 미설정으로 인증 대기 상태이며 도로망 연결은 수행하지 않습니다.
+집중호우 침수위험을 고려한 긴급구호물자 비축 및 수송 네트워크 최적화를 목표로 합니다. **현재는 시설 좌표와 도로망 데이터의 신뢰성을 확보하는 단계**이며, 침수위험 분석·Dijkstra 최단경로 계산·CFLP/MILP 최적화는 향후 작업입니다.
 
-[실제 데이터·지도·코드 ZIP 다운로드](https://github.com/hajunben-gif/Kor_map/raw/refs/heads/main/downloads/korea-road-network.zip) · [추출 결과](RESULTS.md)
+## 현재 진행 상황
 
-실제 데이터는 `data/20261109T045434949410Z/`에 있습니다. 저장소의 **Code → Download ZIP**으로도 전체를 받을 수 있습니다.
+저장소 보존 결과 기준, 문서 갱신일: 2026-11-18.
 
+| 작업 | 상태와 확인된 결과 |
+|---|---|
+| 시설 좌표 확보 | 총 147개 중 146개 확보: Kakao Local API 142개 성공 + Google Maps 수동 보완 4개. 청양군 대동마을회관 1개는 미확보 |
+| 군별 도로망 예비 구축 | 부여군·청양군 OSMnx `drive` 방향성 도로망 구축 및 저장 완료 |
+| 시설별 도로거리 예비 분석 | 좌표 보유 146개에 대해 기존 군별 그래프의 최근접 도로까지 직선거리 계산 완료. 좌표 없는 1개 제외 |
+| 군별 행정경계 누락 조사 | 죽림리마을회관의 진입도로·교량 누락 원인 검증 완료 |
+| 통합 분석 영역 | 두 군 합집합과 2km·5km 완충 영역 생성·검증 완료 |
+| 통합 도로망 구축 | 아직 미수행. 통합 영역 폴리곤 생성과 도로망 구축은 별도 단계 |
+| 통합망 기반 거리 재계산 | 아직 미수행 |
+| 침수위험·최단경로·최적화 | 아직 미수행 |
 
-OSMnx 2.1.1로 실제 OpenStreetMap 도로만 다운로드하는 GIS 기초 데이터 프로젝트입니다. 침수도로 또는 가상 도로를 만들지 않습니다. 인터넷 연결이 필요합니다.
+Kakao API는 과거 GitHub Actions에서 **실제 호출에 성공**했습니다. 이는 현재 Codex Cloud·사용자 PC·Actions의 API 키 설정 여부나 현재 접속 가능성을 의미하지 않습니다. 이번 문서 갱신에서는 키 설정 확인이나 API 호출을 하지 않았습니다. 초기 인증 대기 기록과 최신 완료 결과의 구분은 [GEOCODING.md](GEOCODING.md)를 참고하세요.
 
-## 실행
+## 시설 좌표와 예비 접근거리
 
-Python 3.11 이상을 권장합니다. Python 3.12 / OSMnx 2.1.1에서 확인했습니다.
+- [최종 시설 CSV](data/processed/shelters_final_147.csv): 147행, 좌표 확보 146개. 식별자는 `시군명 + 시설일련번호`입니다.
+- [시설 검증 보고서](data/processed/shelters_validation_report.json): Kakao 142개·수동 4개·미확보 1개와 원본 보존 검증.
+- [수동 병합 단계 기록](output/manual_merge/README.md): 실제 Actions 원본과 Google Maps 수동 좌표의 출처. 이 문서의 미계산 설명은 당시 병합 단계의 이력입니다.
+- [예비 접근거리 CSV](data/processed/shelters_road_access_147.csv) 및 [분석 보고서](data/processed/shelters_road_access_report.json): EPSG:5179에서 기존 군별 도로 형상까지의 최근접 직선거리와 약연결요소를 기록합니다.
+- 예비 지도: [부여군](output/road_access/buyeo_map.html), [청양군](output/road_access/cheongyang_map.html). HTML을 내려받아 브라우저에서 열며, 배경 타일·JS/CSS에는 인터넷이 필요합니다.
 
-```bash
-python -m venv .venv
-# Linux/macOS
-source .venv/bin/activate
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python extract.py
+주소 대표점과 수동 좌표는 실제 차량 출입구의 현장 확인을 뜻하지 않습니다. 최근접 직선거리도 주행거리나 통행 가능한 진입 경로가 아닙니다. 기존 그래프의 누락이 일부 거리 결과에 영향을 주므로 통합망 검증 후 재계산할 예정입니다.
+
+## 기존 도로망과 검증된 누락 원인
+
+기존 결과는 `data/20261109T045434949410Z/`의 `buyeo/`, `cheongyang/`에 보존돼 있습니다. 각각 `network.graphml`, `network.gpkg`, `boundary.geojson`, `metadata.json`, `map.html`이 있습니다. [RESULTS.md](RESULTS.md)는 **2026-11-09 군별 예비 구축 당시**의 통계·검증 기록입니다.
+
+기존 설정은 OSMnx 2.1.1의 `network_type='drive'`, `simplify=True`, `retain_all=True`, `truncate_by_edge=False`입니다. 죽림리에서는 진입도로와 교량이 단순화 후 군 경계 횡단 간선으로 합쳐지고, 최종 군별 경계 절단에서 간선 전체가 양쪽 그래프에서 제거되는 메커니즘을 검증했습니다. 단순화 자체가 way ID를 버리거나 `residential`을 drive 필터가 제외한 사례가 아닙니다.
+
+| 죽림리 비교 조건 | 시설→도로 직선거리(m) |
+|---|---:|
+| 기존 청양군 drive | 1,359.551 |
+| 기존 부여군 비교 도로 | 259.893 |
+| 보존 PBF drive·drive_service·전체 highway | 각각 9.515 |
+
+진입도로는 OSM way `978430790`, 교량은 `978430789`입니다. 자세한 근거·재현 범위는 [검증 결과 정리](output/road_network_audit/jukrim/verified_20261112/README.md), [결론 JSON](output/road_network_audit/jukrim/verified_20261112/cause/conclusion.json), [Cloud 인계](docs/JUKRIM_CLOUD_HANDOFF.md)를 참고하세요. 과거 전체 실행의 완전 재현이나 다른 시설 전체의 누락 원인 검증까지 완료한 것은 아닙니다.
+
+기존 군별 그래프를 사후 병합하는 것만으로 이미 삭제된 도로가 복원되지는 않습니다. OSM 연결·필터 통과도 차량 통행권, 노면 상태, 교량 하중, 폭·높이 제한 또는 구호차량 적합성을 보장하지 않습니다.
+
+## 통합 분석 영역과 다음 도로망 단계
+
+[통합 영역 결과](output/integrated_area/boundaries_20261113/README.md)에는 EPSG:5179·4326 GeoJSON 6개와 출처·해시·검증 기록이 있습니다.
+
+| 영역 | 면적(km²) |
+|---|---:|
+| 부여군·청양군 합집합 | 1,099.633046 |
+| 합집합 + 2km 완충 | 1,481.032321 |
+| 합집합 + 5km 완충 | 2,043.666488 |
+
+두 군 ⊆ 통합 경계 ⊆ 2km ⊆ 5km 포함관계와 죽림리 회관·진입도로·교량의 포함을 검증했습니다. **영역 생성만 완료했으며 통합 도로 추출·방향성 그래프 구축은 아직 하지 않았습니다.**
+
+후속 구축 정책은 2026-11-09에 확보한 동일 PBF 스냅샷, 기본 `drive` 준거 방향성 그래프, 최초 2km·비교 5km 범위입니다. 내부 군 경계로 도로를 삭제하지 않고 원본·단순화 그래프를 모두 보존하며, 경계 횡단·교량·방향성·연결성과 죽림리 회귀 검사를 통과한 뒤 146개 시설의 거리를 재계산할 계획입니다.
+
+## 저장소에 있는 자료와 외부 자료
+
+- 포함: 원본 시설 CP949 CSV(`inputs/`), 최종 시설 CSV·검증 보고서, 기존 두 군 도로망·행정경계, 예비 접근거리, 죽림리 지역 조사 증거, 통합 분석 영역.
+- **전국 대한민국 원본 PBF와 SQLite 인덱스는 Git에 포함하지 않습니다.** 보존된 지역 JSON 증거와 전국 PBF는 서로 다른 자료입니다. ZIP에 담긴 과거 캐시도 전국 PBF의 대체물이 아닙니다.
+- **침수위험지도·침수 시나리오 원자료는 현재 저장소에서 확인되지 않았습니다.** 추적 파일·로컬 자료 파일명과 기존 ZIP 3개의 파일 목록을 확인했으며, 저장소에 포함된 도로망 GeoPackage를 침수자료로 안내하지 않습니다. 향후 공식 자료의 확보·기준 시각·CRS·범례·라이선스 검증이 필요합니다.
+- `downloads/`의 ZIP은 과거 단계의 배포·백업 자료입니다. 최신 상태는 위의 개별 파일과 검증 문서를 기준으로 확인하세요. **Code → Download ZIP**도 Git에 없는 외부 자료를 포함하지 않습니다.
+
+## 재현과 실행 구분
+
+Python 3.11 이상을 사용합니다. OSMnx 2.1.1, PyOsmium 4.2.0을 고정하고 있으며 실제 검증 환경은 각 결과의 메타데이터를 기준으로 합니다.
+
+```sh
+python -m pip install -r requirements.txt -r requirements-pbf-audit.txt
+# 저장된 경계·지역 증거만 사용하는 오프라인 검사
+python -m unittest discover -s tests -p test_integrated_area.py -v
+python scripts/jukrim_boundary_regression.py
+# 통합 영역 재생성: 기존에 존재하지 않는 새 출력 폴더 지정
+python scripts/build_integrated_area.py --output work/integrated_area_new
 ```
 
-한 지역만 실행하거나 저장 위치와 API 대기 시간을 변경할 수 있습니다.
+패키지 설치에는 네트워크가 필요할 수 있습니다. 위 오프라인 검사는 전국 PBF나 API를 사용하지 않습니다. 합성 입력 테스트는 실제 현장 데이터의 대체 증거가 아닙니다.
 
-```bash
-python extract.py --regions buyeo --output data --timeout 180 --attempts 3
-```
+`extract.py`는 **기존 군별 예비 구축 방식**이며 통합망 생성 코드가 아닙니다. `python extract.py`는 Nominatim·Overpass를 호출해 새 결과를 생성하므로 단순 결과 열람을 위해 실행할 필요가 없습니다. 기존 방식의 재실행은 검증된 경계 누락 문제를 자동 해결하지 않습니다. PBF 실행 안내는 [JUKRIM_PBF_AUDIT.md](JUKRIM_PBF_AUDIT.md), 지오코딩 재실행 안내는 [ACTIONS_GEOCODING.md](ACTIONS_GEOCODING.md)를 참고하세요. API·다운로드 재실행은 별도 자격·네트워크 접근과 원자료가 필요하며 성공을 보장하지 않습니다.
 
-주요 라이브러리: OSMnx, NetworkX, GeoPandas, Shapely, pyogrio, Folium, requests. OSMnx와 Folium의 의존성으로 함께 설치됩니다. 실행 환경의 정확한 버전은 `validated-environment.txt`에 기록했습니다.
+## 향후 수행할 작업
 
-## 결과
+1. 통합 도로망 구축 및 경계·교량·방향성·연결성 검증, 통합망 기준 시설 접근거리 재계산.
+2. 공식 침수위험자료 확보·검증과 도로 중첩 분석, 침수 시나리오별 통행 제한 정의.
+3. 시설·비축 후보지의 실제 진입점 검토와 방향·통행 제한을 반영한 **Dijkstra 최단경로** 및 이동비용 행렬 계산.
+4. 후보지·수요·용량·비용·시나리오를 정의한 **CFLP/MILP** 비축거점·배분 최적화와 검증.
 
-매 실행은 `data/<UTC 실행시각>/`에 새로 저장됩니다. 각 `buyeo/`, `cheongyang/`에는 다음 파일이 생성됩니다.
+현재 저장소는 침수도로 판정, 실제 수송 경로 계산 또는 최적 비축거점 도출을 완료한 결과를 제공하지 않습니다. 시설의 `주거능력`은 최대 수용가능인원이며 실제 이재민 수나 확정 수요량이 아닙니다.
 
-- `network.graphml`: 방향성 NetworkX MultiDiGraph. 원래 노드 ID와 `(u, v, key)` 유지.
-- `network.gpkg`: `nodes`, `edges` 레이어. 방향별 간선 및 `u, v, key` 보존.
-- `boundary.geojson`: 실제 추출에 사용한 경계.
-- `metadata.json`: 추출 시각, 경계 출처, CRS, API, 설정, 통계.
-- `map.html`: 도로 속성 툴팁과 행정경계가 있는 지도. 배경 타일과 JS/CSS는 인터넷 필요.
-
-`run_status.json`은 지역별 실패를 기록합니다. 하나가 실패해도 다음 지역을 처리하고, 실패가 있으면 종료 코드 1을 반환합니다. 부분 출력 폴더는 실패 결과일 수 있으므로 상태 파일을 확인하세요. 로그의 API URL에는 공개 OSM 질의가 포함됩니다.
-
-## 추출 기준과 한계
-
-- 출처: OpenStreetMap contributors, https://www.openstreetmap.org/copyright (ODbL 1.0). 지도에도 OSM 저작자 표시가 포함됩니다.
-- `network_type="drive"`, `simplify=True`, `retain_all=True`. 도로 방향, 평행 간선, 단절된 작은 연결요소를 유지합니다. 단순화로 중간 형상 노드는 geometry로 합쳐집니다. 모든 노드가 실제 교차로인 것은 아니며 고가도로의 평면 교차는 연결로 만들지 않습니다.
-- `length`는 OSMnx가 단순화 전 도로 구간 길이를 합산한 미터 값입니다. `highway`, `oneway`, `osmid`, `name` 및 존재하는 기타 속성을 저장합니다. OSM에 없는 값은 임의 보충하지 않으며 단순화된 속성은 리스트일 수 있습니다.
-- GraphML/GeoPackage/경계는 EPSG:4326 (경도·위도)입니다. 면적·버퍼 등 미터 단위 GIS 연산은 `to_crs(5179)`로 투영하세요. 경위도 geometry.length를 미터로 해석하면 안 됩니다.
-- 출력 통계: 노드 수, 방향별 간선 수, 방향별 길이 합계, 양방향 중복을 제거한 OSMnx 무방향 그래프 길이, 약연결요소 및 강연결요소 수. 평행 도로는 별도 구간입니다. 양방향 길이 합계는 물리적 도로 길이보다 큽니다.
-- `truncate_by_edge=False`: 경계 밖 노드를 제외하므로 경계를 가로지르는 일부 구간이 빠질 수 있습니다. 두 군의 그래프는 별도 분석용이며 군 사이 수송 경로는 이 두 그래프를 단순 결합하여 완전하다고 볼 수 없습니다. 추후 두 경계의 합집합과 적절한 외곽 버퍼로 통합 그래프를 별도 추출하는 것이 좋습니다.
-- 기록된 시각은 다운로드/실행 시각이며 OSM의 완전한 역사 스냅샷 기준일이 아닙니다. 캐시 재사용 시 원자료가 더 오래되었을 수 있습니다. `data/cache`의 응답을 보존하면 재현에 도움이 됩니다. 최신 재조회가 필요하면 캐시를 다른 위치로 이동하고 실행하세요. Nominatim과 Overpass 질의는 원자적인 동일시점 조회가 아닙니다.
-- OSM의 자동차 통행 가능 태그 기준입니다. 현장 통행, 계절 통제, 누락된 제한, 차량 중량·높이·폭, 회전 제한은 보장하지 않습니다. 기본 MultiDiGraph만으로 회전 제한은 구현되지 않습니다. 구호 수송 적용 전에 현장·공식 자료 검증이 필요합니다.
-
-## 행정경계 보완
-
-Nominatim에 충남의 해당 군을 구조화 질의하고 행정경계 relation, 이름, 대략적인 좌표 범위를 확인합니다. 자동 결과는 `boundary.geojson`으로 확인하세요. 경계가 없거나 다르면 공신력 있는 GIS에서 받은 정확한 군 경계를 준비합니다.
-
-```text
-boundaries/buyeo.geojson
-boundaries/cheongyang.geojson
-```
-
-각 파일에는 해당 군만 포함한 유효한 Polygon/MultiPolygon과 CRS가 있어야 합니다. 여러 피처는 합집합으로 처리하며 EPSG:4326으로 변환합니다. 파일이 있으면 자동 검색보다 우선합니다. 원본 제공기관·기준일·라이선스는 `boundaries/SOURCE.md`에 별도로 기록하세요. 파일 SHA-256은 메타데이터에 자동 저장됩니다. 임의 사각형 경계로 대체하지 않습니다.
-
-## 오류와 API 제한
-
-API 연결 오류, 빈 응답, HTTP 오류는 기본 최대 3회, 15/30초 지수 대기로 재시도합니다. 예외 응답에 숫자형 Retry-After가 있으면 적용합니다. OSMnx의 Overpass 슬롯 대기와 캐시도 활성화합니다. OSMnx 내부에서도 일부 상태에 대해 자체 재시도가 있어 전체 대기 시간은 `--timeout`보다 길 수 있습니다. `--timeout`은 요청별 시간입니다. 지속 실패 시 로그를 확인하고 시간을 두고 재실행하거나 정확한 경계 파일을 제공하세요. 여러 프로세스로 공용 API를 병렬 호출하지 마세요. 기본 API는 공개 Nominatim과 Overpass이며 서비스 정책을 준수해야 합니다.
-
-## 향후 대피소·창고와 침수자료 연결
-
-```python
-import osmnx as ox
-G = ox.load_graphml('data/<실행시각>/buyeo/network.graphml')
-# X=경도, Y=위도. 실제 시설 좌표로 별도 시설 테이블을 구성하세요.
-# node_id, distance_m = ox.distance.nearest_nodes(G, X=longitude, Y=latitude, return_dist=True)
-```
-
-시설은 별도 `facility_id, type, longitude, latitude, nearest_node_id, distance_m` 테이블에 보관하고 연결 거리를 검토하세요. 노드에 강제 병합하면 하천·고가도로 반대편으로 잘못 연결될 수 있습니다. 도로 중간 연결이 필요하면 간선 분할과 역방향 간선을 함께 처리해야 합니다. 원본 그래프는 유지하고 시나리오별 복사본에 실제 확인된 침수 간선 `(u, v, key)`만 차단하세요. 이 프로젝트에는 침수 판정이나 가정 차단 간선이 없습니다.
-
-## 결과 검증
-
-```bash
-python validate.py data/<실행시각>
-python -m pip install pytest
-python -m pytest -q tests
-```
-
-검증 스크립트는 GraphML 재로딩, GeoPackage CRS, 노드 ID와 방향별 `(u,v,key)` 집합의 일치, 길이와 HTML 파일을 확인합니다. 테스트에는 가상 도로망을 사용하지 않으며 API 오류와 잘못된 경계 처리만 검사합니다.
+도로 자료 출처: OpenStreetMap contributors / [ODbL 1.0](https://www.openstreetmap.org/copyright). 미터 단위 거리·면적은 EPSG:5179에서 계산하고, 좌표 저장·지도 표시는 EPSG:4326을 사용합니다.
