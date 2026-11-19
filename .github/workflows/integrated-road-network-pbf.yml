@@ -1,0 +1,78 @@
+name: Integrated Road Network (PBF)
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_latest_if_unavailable:
+        description: Allow latest Geofabrik PBF if the verified 2026-11-09 archive is unavailable
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: integrated-road-network-pbf
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-pbf-audit.txt
+      - name: Install dependencies and run offline tests
+        run: |
+          python -m pip install -r requirements.txt -r requirements-pbf-audit.txt pytest
+          python -m pytest -q
+      - name: Download verified PBF and build the integrated network
+        env:
+          INTEGRATED_PBF_ALLOW_LATEST: ${{ inputs.allow_latest_if_unavailable }}
+        run: |
+          destination="$RUNNER_TEMP/integrated-road-network"
+          printf 'INTEGRATED_PBF_OUTPUT=%s\n' "$destination" >> "$GITHUB_ENV"
+          args=(--download-historical --output "$destination")
+          if [[ "$INTEGRATED_PBF_ALLOW_LATEST" == true ]]; then
+            args+=(--allow-latest-if-unavailable)
+          fi
+          python -m scripts.build_integrated_road_network "${args[@]}"
+      - name: Verify repository inputs unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- data inputs output
+      - name: Upload validated analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-road-network-pbf-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.INTEGRATED_PBF_OUTPUT }}/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Summarize verified snapshot and coverage
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          metadata = json.loads((Path(os.environ["INTEGRATED_PBF_OUTPUT"]) / "metadata.json").read_text())
+          source = metadata["source"]
+          check = metadata["verification"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write("## Verified integrated road network\n\n")
+              summary.write(f"- Snapshot mode: `{source['download_metadata']['selection']}`\n")
+              summary.write(f"- Timestamp: `{source['data_timestamp']}`\n")
+              summary.write(f"- Source: {source['upstream']}\n")
+              summary.write(f"- SHA-256: `{source['sha256']}`\n")
+              summary.write(f"- Compared source highway ways: {check['compared_source_highway_ways']}\n")
+              summary.write(f"- Missing admitted directed segments: {check['missing_drive_way_segments']}\n")
+              summary.write(f"- Matched facilities: {metadata['facilities']['matched_facilities']}\n")
+          PY
