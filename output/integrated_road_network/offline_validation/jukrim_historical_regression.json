@@ -1,0 +1,74 @@
+{
+  "status": "passed",
+  "osmnx_version": "2.1.1",
+  "trials": [
+    {
+      "county": "cheongyang",
+      "simplify": false,
+      "truncate_by_edge": false,
+      "target_edge_counts": {
+        "978430790": 42,
+        "978430789": 0,
+        "166680097": 12
+      },
+      "endpoint_degree": 2
+    },
+    {
+      "county": "cheongyang",
+      "simplify": true,
+      "truncate_by_edge": false,
+      "target_edge_counts": {
+        "978430790": 0,
+        "978430789": 0,
+        "166680097": 0
+      },
+      "endpoint_degree": 0
+    },
+    {
+      "county": "cheongyang",
+      "simplify": true,
+      "truncate_by_edge": true,
+      "target_edge_counts": {
+        "978430790": 2,
+        "978430789": 2,
+        "166680097": 2
+      },
+      "endpoint_degree": 2
+    },
+    {
+      "county": "buyeo",
+      "simplify": false,
+      "truncate_by_edge": false,
+      "target_edge_counts": {
+        "978430790": 0,
+        "978430789": 0,
+        "166680097": 406
+      },
+      "endpoint_degree": null
+    },
+    {
+      "county": "buyeo",
+      "simplify": true,
+      "truncate_by_edge": false,
+      "target_edge_counts": {
+        "978430790": 0,
+        "978430789": 0,
+        "166680097": 10
+      },
+      "endpoint_degree": null
+    },
+    {
+      "county": "buyeo",
+      "simplify": true,
+      "truncate_by_edge": true,
+      "target_edge_counts": {
+        "978430790": 2,
+        "978430789": 2,
+        "166680097": 12
+      },
+      "endpoint_degree": 2
+    }
+  ],
+  "network_attempts": 0,
+  "inputs_unchanged": true
+}
