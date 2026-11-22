@@ -47,17 +47,17 @@ jobs:
       - name: Download verified road-profile artifact
         uses: actions/download-artifact@v4
         with:
-          name: \${{ inputs.source_artifact_name }}
-          run-id: \${{ inputs.source_run_id }}
-          github-token: \${{ github.token }}
-          path: \${{ runner.temp }}/verified-road-profiles
+          name: ${{ inputs.source_artifact_name }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-road-profiles
       - name: Download connected-edge QA artifact
         uses: actions/download-artifact@v4
         with:
-          name: \${{ inputs.qa_artifact_name }}
-          run-id: \${{ inputs.qa_run_id }}
-          github-token: \${{ github.token }}
-          path: \${{ runner.temp }}/verified-connected-qa
+          name: ${{ inputs.qa_artifact_name }}
+          run-id: ${{ inputs.qa_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-connected-qa
       - name: Render standalone local-openable interactive HTML
         run: |
           python -m scripts.render_verified_road_network_html \
@@ -70,7 +70,7 @@ jobs:
       - name: Upload HTML viewer
         uses: actions/upload-artifact@v4
         with:
-          name: verified-road-network-html-\${{ github.run_id }}-\${{ github.run_attempt }}
-          path: \${{ runner.temp }}/verified-road-viewer/
+          name: verified-road-network-html-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/verified-road-viewer/
           if-no-files-found: error
           retention-days: 90
