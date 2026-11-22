@@ -55,7 +55,7 @@ jobs:
           name: integrated-road-network-pbf-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.INTEGRATED_PBF_OUTPUT }}/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
       - name: Summarize verified snapshot and coverage
         run: |
           python - <<'PY'
