@@ -56,3 +56,16 @@ def test_maplibre_falls_back_without_external_map_service():
     page = view.get_root().render()
     assert "OpenFreeMap is unavailable" not in page
     assert "embedded roads remain visible" in page
+
+
+def test_maplibre_dependency_scripts_load_in_correct_order():
+    view = folium.Map(location=[36.32, 126.83], zoom_start=10, tiles=None)
+    renderer.add_openfreemap_background(view)
+    page = view.get_root().render()
+    assert page.index("leaflet.js") < page.index("maplibre-gl@5/dist/maplibre-gl.js")
+    assert page.index("maplibre-gl@5/dist/maplibre-gl.js") < page.index(
+        "leaflet-maplibre-gl.js"
+    )
+    assert page.index("leaflet-maplibre-gl.js") < page.index(
+        "tiles.openfreemap.org/styles/liberty"
+    )
