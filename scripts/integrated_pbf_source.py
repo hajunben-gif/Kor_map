@@ -24,9 +24,9 @@ def utc_now():
     return datetime.now(timezone.utc).isoformat()
 
 
-def fetch(session, url, destination):
+def fetch(session, url, destination, *, attempts=ATTEMPTS):
     """Retry both headers and streamed file bodies from the same source."""
-    for attempt in range(1, ATTEMPTS + 1):
+    for attempt in range(1, attempts + 1):
         try:
             with session.get(url, stream=True, timeout=(20, 120)) as response:
                 status = response.status_code
@@ -61,16 +61,16 @@ def fetch(session, url, destination):
                 destination.unlink(missing_ok=True)
             failure = f"{type(exc).__name__} from {url}"
             delay = ""
-        if attempt < ATTEMPTS:
+        if attempt < attempts:
             wait = int(delay) if delay.isascii() and delay.isdecimal() and len(delay) <= 6 else 5 * attempt
             if wait > 120:
                 raise PBFUnavailable(f"{failure}; server requested a retry after {wait}s")
-            print(f"PBF download attempt {attempt}/{ATTEMPTS}: {failure}; retry in {wait}s", file=sys.stderr)
+            print(f"PBF download attempt {attempt}/{attempts}: {failure}; retry in {wait}s", file=sys.stderr)
             sleep(wait)
-    raise PBFUnavailable(f"{failure} after {ATTEMPTS} attempts")
+    raise PBFUnavailable(f"{failure} after {attempts} attempts")
 
 
-def acquire_pbf(work, reference, *, historical, allow_latest=False):
+def acquire_pbf(work, reference, *, historical, allow_latest=False, attempts=ATTEMPTS):
     """Download to a private scratch directory and verify before analysis."""
     pbf = work / "south-korea.osm.pbf"
     started = utc_now()
@@ -79,7 +79,7 @@ def acquire_pbf(work, reference, *, historical, allow_latest=False):
         session.headers["User-Agent"] = UA
         if historical:
             try:
-                transfer = fetch(session, HISTORICAL_URL, pbf)
+                transfer = fetch(session, HISTORICAL_URL, pbf, attempts=attempts)
             except PBFUnavailable as exc:
                 if not allow_latest:
                     raise PBFUnavailable(f"Historical PBF unavailable: {exc}. Latest fallback is disabled.") from exc
@@ -100,8 +100,8 @@ def acquire_pbf(work, reference, *, historical, allow_latest=False):
                         {"url": HISTORICAL_URL, "status": "verified"}
                     ],
                 }
-        expected_md5, checksum_url = fetch(session, URL + ".md5", None)
-        transfer = fetch(session, URL, pbf)
+        expected_md5, checksum_url = fetch(session, URL + ".md5", None, attempts=attempts)
+        transfer = fetch(session, URL, pbf, attempts=attempts)
     if file_hash(pbf, "md5") != expected_md5:
         raise ValueError("Latest PBF differs from the official MD5")
     header = pbf_header(pbf)
@@ -113,3 +113,29 @@ def acquire_pbf(work, reference, *, historical, allow_latest=False):
         "md5": expected_md5, "sha256": file_hash(pbf), "bytes": pbf.stat().st_size,
         "started_at_utc": started, "finished_at_utc": utc_now(), "attempted_sources": history,
     }
+
+
+def acquire_profile_pbf(work, previous, reference):
+    """One attempt per official source; one verified file serves all profiles."""
+    pbf = work / "south-korea.osm.pbf"
+    started = utc_now()
+    with requests.Session() as session:
+        session.headers["User-Agent"] = UA
+        try:
+            transfer = fetch(session, previous["url"], pbf, attempts=1)
+        except PBFUnavailable as exc:
+            reason = str(exc)
+            pbf.unlink(missing_ok=True)
+        else:
+            header = pbf_header(pbf)
+            if file_hash(pbf) != previous["sha256"] or header["data_timestamp"] != previous["data_timestamp"]:
+                raise ValueError("Prior-run PBF SHA-256 or timestamp differs; no latest fallback")
+            return pbf, dict(**transfer, **header, source_url=previous["url"],
+                sha256=previous["sha256"], bytes=pbf.stat().st_size,
+                selection="prior_run_archive", verification="prior-run SHA-256 and header",
+                started_at_utc=started, finished_at_utc=utc_now(),
+                attempted_sources=[{"url": previous["url"], "status": "verified"}])
+    path, meta = acquire_pbf(work, reference, historical=False, attempts=1)
+    meta["selection"] = "latest_after_prior_run_unavailable"
+    meta["attempted_sources"].insert(0, {"url": previous["url"], "status": "unavailable", "reason": reason})
+    return path, meta
