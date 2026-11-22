@@ -1,8 +1,9 @@
 """Generate a read-only, local-openable HTML viewer of saved, verified road profiles.
 
 The HTML is a visualization, not a new routing calculation or a road-access permit.
-It embeds road geometries, county outlines and facility points without raster map tiles.
-Leaflet JS/CSS still loads from public CDNs, so internet is needed for map controls.
+It embeds verified road geometries, county boundaries and facility points.
+OpenFreeMap vector basemap uses documented public service, not blocked OSM raster tiles.
+Leaflet, MapLibre, vector tiles and styles need an internet connection.
 """
 from __future__ import annotations
 
@@ -16,6 +17,8 @@ import math
 from pathlib import Path
 
 import folium
+from branca.element import MacroElement
+from jinja2 import Template
 import osmnx as ox
 
 PROFILES = {
@@ -27,6 +30,8 @@ OUTPUT_NAME = "integrated_road_network_20261120.html"
 QA_NAME = "facilities_connected_access_147.csv"
 COLORS = {"ordinary": "#2775ad", "service": "#ed8325"}
 WARNING_COLOR = "#df3b45"
+VECTOR_STYLE = "https://tiles.openfreemap.org/styles/liberty"
+VECTOR_PROVIDER = "OpenFreeMap"
 
 
 def digest(path: Path) -> str:
@@ -152,6 +157,77 @@ def facility_popup(row: dict) -> str:
     return "".join(lines)
 
 
+
+class OpenFreeMapBackground(MacroElement):
+    """Display OSM-derived streets/labels using OpenFreeMap vector service.
+
+    Leaflet retains all facility, QA, road geometry and layer controls.
+    If MapLibre/WebGL/network is unavailable, the embedded roads still render.
+    """
+    _template = Template("""
+    {% macro script(this, kwargs) %}
+    (function () {
+      var map = {{ this._parent.get_name() }};
+      if (typeof L.maplibreGL !== 'function' || typeof maplibregl === 'undefined') {
+        console.warn('MapLibre is unavailable; showing embedded roads without online background.');
+        return;
+      }
+      try {
+        var vectorBackground = L.maplibreGL({
+          style: 'https://tiles.openfreemap.org/styles/liberty',
+          pane: 'tilePane',
+          interactive: false
+        });
+        vectorBackground.addTo(map);
+        map.attributionControl.addAttribution(
+          '<a href="https://openfreemap.org/" target="_blank">OpenFreeMap</a> | ' +
+          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
+        );
+        var toggle = L.control({position: 'bottomleft'});
+        toggle.onAdd = function () {
+          var btn = L.DomUtil.create('button', 'leaflet-bar');
+          btn.type = 'button';
+          btn.textContent = '배경지도 끄기';
+          btn.title = 'OpenFreeMap 배경지도 표시/숨기기';
+          btn.style.cssText = 'background:#fff;padding:7px 10px;border:1px solid #ccc;' +
+                              'border-radius:4px;cursor:pointer;font:12px sans-serif';
+          L.DomEvent.disableClickPropagation(btn);
+          L.DomEvent.on(btn, 'click', function (event) {
+            L.DomEvent.stop(event);
+            if (map.hasLayer(vectorBackground)) {
+              map.removeLayer(vectorBackground);
+              btn.textContent = '배경지도 켜기';
+            } else {
+              vectorBackground.addTo(map);
+              btn.textContent = '배경지도 끄기';
+            }
+          });
+          return btn;
+        };
+        toggle.addTo(map);
+      } catch (error) {
+        console.warn('OpenFreeMap could not start; embedded roads remain visible.', error);
+      }
+    })();
+    {% endmacro %}
+    """)
+
+
+def add_openfreemap_background(view):
+    """Insert public vector-map assets and GL layer ahead of road overlays."""
+    root = view.get_root()
+    root.header.add_child(folium.CssLink(
+        "https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
+    ), name="openfreemap_maplibre_css")
+    root.header.add_child(folium.JavascriptLink(
+        "https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"
+    ), name="openfreemap_maplibre_js")
+    root.header.add_child(folium.JavascriptLink(
+        "https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"
+    ), name="openfreemap_leaflet_binding")
+    OpenFreeMapBackground().add_to(view)
+
+
 def add_county_boundaries(view):
     """Embed the existing two county outlines; do not request any map tiles."""
     root = Path(__file__).resolve().parents[1]
@@ -212,13 +288,14 @@ def draw(profile_folder: Path, qa_folder: Path, output_folder: Path) -> dict:
     if source["sha256"] != "492ceebb946500fa54dd1b460b4ff923884dd9e673f65d3750e1d60122b85a8e":
         raise ValueError("This dated viewer must use the verified 2026-11-20 PBF snapshot")
 
-    # file:// pages cannot send the Referer required by OSM's public tile policy.
-    # Do not request public raster tiles at all; the actual roads/markers are embedded.
+    # OSM's volunteer raster tile servers block file:// pages without Referer.
+    # OpenFreeMap documents public vector styles for Leaflet+MapLibre (no API key).
     view = folium.Map(location=[36.32, 126.83], zoom_start=10,
                       tiles=None, prefer_canvas=True, control_scale=True)
     view.get_root().header.add_child(folium.Element(
         "<style>.leaflet-container{background:#f8fafc!important}</style>"
     ))
+    add_openfreemap_background(view)
     add_county_boundaries(view)
     counts = {}
     extent = None
@@ -269,7 +346,7 @@ def draw(profile_folder: Path, qa_folder: Path, output_folder: Path) -> dict:
         '<div>파랑: 일반도로 · 주황: Service · 초록: 시설 · 빨강: QA 보정 시설</div>'
         f'<div>시설 146/147 · QA 보정 시설 {warned}곳 · 기본 레이어 Drive+Service</div>'
         '<small>도로 형상·OSM 연결성만 검증. 실제 구호차량 통행·주행거리는 미확정.</small>'
-        '<div><small>외부 배경지도 타일 없음(403 방지). 행정경계·도로·시설은 HTML 내장. Leaflet 로딩에는 인터넷 필요.</small></div>'
+        '<div><small>실제 배경: OpenFreeMap (온라인 벡터지도). 외부 OpenStreetMap 래스터 타일은 사용하지 않음.</small></div>'
         '</div>'
     )
     view.get_root().html.add_child(folium.Element(title))
@@ -297,7 +374,10 @@ def draw(profile_folder: Path, qa_folder: Path, output_folder: Path) -> dict:
         "routing_performed": False,
         "actual_vehicle_access_certified": False,
         "raster_tile_requests": 0,
-        "background": "embedded_county_boundaries_without_raster_tiles",
+        "background": "openfreemap_vector_liberty_with_embedded_county_fallback",
+        "vector_tile_style": VECTOR_STYLE,
+        "vector_tile_provider": VECTOR_PROVIDER,
+        "requires_internet_for_vector_basemap": True,
         "requires_internet_for_leaflet_javascript_css": True,
     }
     (output_folder / "viewer_metadata.json").write_text(
