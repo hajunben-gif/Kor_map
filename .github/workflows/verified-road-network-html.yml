@@ -1,0 +1,76 @@
+name: Verified Integrated Road Network HTML
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Existing successful Road Profiles run ID; does not run PBF analysis"
+        type: string
+        default: "44992793405"
+        required: true
+      source_artifact_name:
+        description: "Existing validated road profiles artifact"
+        type: string
+        default: "road-profile-comparison-44992793405-1"
+        required: true
+      qa_run_id:
+        description: "Existing successful Connected Road Access QA run ID"
+        type: string
+        default: "45010076547"
+        required: true
+      qa_artifact_name:
+        description: "Existing validated QA artifact"
+        type: string
+        default: "connected-access-qa-45010076547-1"
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install map dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Download verified road-profile artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source_artifact_name }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-road-profiles
+      - name: Download connected-edge QA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.qa_artifact_name }}
+          run-id: ${{ inputs.qa_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-connected-qa
+      - name: Render standalone local-openable interactive HTML
+        run: |
+          python -m scripts.render_verified_road_network_html \
+            --profile-artifact "$RUNNER_TEMP/verified-road-profiles" \
+            --qa-artifact "$RUNNER_TEMP/verified-connected-qa" \
+            --output "$RUNNER_TEMP/verified-road-viewer"
+      - name: Check preserved repository sources
+        if: always()
+        run: git diff --exit-code HEAD -- data inputs output
+      - name: Upload HTML viewer
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-road-network-html-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/verified-road-viewer/
+          if-no-files-found: error
+          retention-days: 90
