@@ -1,0 +1,61 @@
+name: Connected Road Access QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful Road Profiles run ID (existing artifact; no PBF download)
+        type: string
+        required: true
+        default: '44992793405'
+      source_artifact_name:
+        description: Exact existing profile artifact name
+        type: string
+        required: true
+        default: road-profile-comparison-44992793405-1
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-pbf-audit.txt
+      - name: Install Python dependencies and run offline tests
+        run: |
+          python -m pip install -r requirements.txt -r requirements-pbf-audit.txt pytest
+          python -m pytest -q
+      - name: Read existing profile artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source_artifact_name }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/source-road-profiles
+      - name: Calculate geometric and connected-edge distances
+        run: |
+          python -m scripts.connected_access_qa \
+            --artifact-dir "$RUNNER_TEMP/source-road-profiles" \
+            --output "$RUNNER_TEMP/connected-access-qa"
+      - name: Verify repository data unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- data inputs output
+      - name: Publish separate QA results
+        uses: actions/upload-artifact@v4
+        with:
+          name: connected-access-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/connected-access-qa/
+          retention-days: 90
+          if-no-files-found: error
