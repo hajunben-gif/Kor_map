@@ -1,7 +1,8 @@
 """Generate a read-only, local-openable HTML viewer of saved, verified road profiles.
 
 The HTML is a visualization, not a new routing calculation or a road-access permit.
-It embeds road geometries and facility points; Leaflet and OSM base tiles need internet.
+It embeds road geometries, county outlines and facility points without raster map tiles.
+Leaflet JS/CSS still loads from public CDNs, so internet is needed for map controls.
 """
 from __future__ import annotations
 
@@ -151,6 +152,28 @@ def facility_popup(row: dict) -> str:
     return "".join(lines)
 
 
+def add_county_boundaries(view):
+    """Embed the existing two county outlines; do not request any map tiles."""
+    root = Path(__file__).resolve().parents[1]
+    folder = root / "data" / "20261109T045434949410Z"
+    for code, label in (("buyeo", "부여군"), ("cheongyang", "청양군")):
+        path = folder / code / "boundary.geojson"
+        if not path.is_file():
+            raise FileNotFoundError(f"Preserved county boundary unavailable: {path}")
+        source = json.loads(path.read_text(encoding="utf-8"))
+        if source.get("type") not in ("FeatureCollection", "Feature", "Polygon", "MultiPolygon"):
+            raise ValueError(f"Unexpected boundary GeoJSON: {path}")
+        folium.GeoJson(
+            source,
+            name=f"{label} 경계 (과거 OSM 행정경계)",
+            style_function=lambda _: {
+                "color": "#616f7e", "weight": 2,
+                "fill": True, "fillColor": "#dbe4ed", "fillOpacity": 0.10,
+                "dashArray": "6,5",
+            },
+        ).add_to(view)
+
+
 def add_facilities(view, rows):
     markers = folium.FeatureGroup(name="시설 146곳 (빨강: QA 보정)", show=True)
     warned_facilities = 0
@@ -189,8 +212,14 @@ def draw(profile_folder: Path, qa_folder: Path, output_folder: Path) -> dict:
     if source["sha256"] != "492ceebb946500fa54dd1b460b4ff923884dd9e673f65d3750e1d60122b85a8e":
         raise ValueError("This dated viewer must use the verified 2026-11-20 PBF snapshot")
 
+    # file:// pages cannot send the Referer required by OSM's public tile policy.
+    # Do not request public raster tiles at all; the actual roads/markers are embedded.
     view = folium.Map(location=[36.32, 126.83], zoom_start=10,
-                      tiles="OpenStreetMap", prefer_canvas=True, control_scale=True)
+                      tiles=None, prefer_canvas=True, control_scale=True)
+    view.get_root().header.add_child(folium.Element(
+        "<style>.leaflet-container{background:#f8fafc!important}</style>"
+    ))
+    add_county_boundaries(view)
     counts = {}
     extent = None
     for name, label in PROFILES.items():
@@ -240,7 +269,7 @@ def draw(profile_folder: Path, qa_folder: Path, output_folder: Path) -> dict:
         '<div>파랑: 일반도로 · 주황: Service · 초록: 시설 · 빨강: QA 보정 시설</div>'
         f'<div>시설 146/147 · QA 보정 시설 {warned}곳 · 기본 레이어 Drive+Service</div>'
         '<small>도로 형상·OSM 연결성만 검증. 실제 구호차량 통행·주행거리는 미확정.</small>'
-        '<div><small>HTML은 로컬에서 열 수 있지만 배경지도 및 Leaflet 로딩은 인터넷 필요.</small></div>'
+        '<div><small>외부 배경지도 타일 없음(403 방지). 행정경계·도로·시설은 HTML 내장. Leaflet 로딩에는 인터넷 필요.</small></div>'
         '</div>'
     )
     view.get_root().html.add_child(folium.Element(title))
@@ -267,7 +296,9 @@ def draw(profile_folder: Path, qa_folder: Path, output_folder: Path) -> dict:
         "national_pbf_opened": False,
         "routing_performed": False,
         "actual_vehicle_access_certified": False,
-        "requires_internet_for_leaflet_and_background_tiles": True,
+        "raster_tile_requests": 0,
+        "background": "embedded_county_boundaries_without_raster_tiles",
+        "requires_internet_for_leaflet_javascript_css": True,
     }
     (output_folder / "viewer_metadata.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
