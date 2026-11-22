@@ -34,3 +34,25 @@ def test_embedded_county_boundaries_work_without_raster_tiles():
     page = view.get_root().render()
     assert "tile.openstreetmap.org" not in page
     assert "L.tileLayer(" not in page
+
+
+def test_online_openfreemap_vector_basemap_is_available_without_osm_raster():
+    view = folium.Map(location=[36.32, 126.83], zoom_start=10, tiles=None)
+    renderer.add_openfreemap_background(view)
+    renderer.add_county_boundaries(view)
+    page = view.get_root().render()
+    assert "tiles.openfreemap.org/styles/liberty" in page
+    assert "maplibre-gl@5" in page
+    assert "leaflet-maplibre-gl.js" in page
+    assert "배경지도 끄기" in page
+    assert "tile.openstreetmap.org" not in page
+    assert "L.tileLayer(" not in page
+
+
+def test_maplibre_falls_back_without_external_map_service():
+    view = folium.Map(location=[36.32, 126.83], zoom_start=10, tiles=None)
+    renderer.add_openfreemap_background(view)
+    renderer.add_county_boundaries(view)
+    page = view.get_root().render()
+    assert "OpenFreeMap is unavailable" not in page
+    assert "embedded roads remain visible" in page
