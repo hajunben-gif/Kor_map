@@ -21,7 +21,7 @@ TARGETS = (978430790, 978430789, 166680097)
 CONTROL_NODES = (11270863949, 9053552621, 1781315489)
 WAY_FIELDS = ("highway", "name", "ref", "bridge", "tunnel", "layer", "junction",
               "access", "vehicle", "motor_vehicle", "motorcar", "hgv", "maxweight",
-              "maxheight", "maxwidth", "surface", "service")
+              "maxheight", "maxwidth", "surface", "service", "smoothness", "tracktype")
 
 
 def json_text(value):
@@ -33,9 +33,16 @@ def metric_line(coords):
     return LineString(zip(x, y))
 
 
-def drive_rejections(roads):
+def network_rejections(roads, network_type="drive"):
+    if network_type not in ("drive", "drive_service"):
+        raise ValueError("Supported profiles: drive, drive_service")
     reject = audit_module().filter_rejections
-    return {wid: reject(road["tags"], DRIVE) for wid, road in roads.items()}
+    expression = ox._overpass._get_network_filter(network_type)
+    return {wid: reject(road["tags"], expression) for wid, road in roads.items()}
+
+
+def drive_rejections(roads):
+    return network_rejections(roads, "drive")
 
 
 def read_pbf(source, area, scratch):
@@ -74,7 +81,7 @@ def read_pbf(source, area, scratch):
     return selected, dict(counts)
 
 
-def outside_links(source, selected, drive_nodes, area):
+def outside_links(source, selected, drive_nodes, area, network_type="drive"):
     """Audit source drive neighbors omitted at the outer perimeter and retain node tags."""
     reject = audit_module().filter_rejections
     outside = defaultdict(set)
@@ -88,7 +95,7 @@ def outside_links(source, selected, drive_nodes, area):
         if obj.id in selected or "highway" not in obj.tags:
             continue
         refs = {ref.ref for ref in obj.nodes} & drive_nodes.keys()
-        if refs and not reject(dict(obj.tags), DRIVE):
+        if refs and not reject(dict(obj.tags), ox._overpass._get_network_filter(network_type)):
             for node in refs:
                 if area.covers(Point(drive_nodes[node])):
                     raise ValueError(f"Drive way {obj.id} omitted at interior node {node}")
@@ -100,8 +107,8 @@ def is_oneway(tags):
     return ox.graph._is_path_one_way(tags, False, {"yes", "true", "1", "-1", "reverse", "T", "F"})
 
 
-def build_graphs(roads, rejected, area, counties, source=None):
-    raw = nx.MultiDiGraph(crs="EPSG:4326", simplified=False, network_type="drive",
+def build_graphs(roads, rejected, area, counties, source=None, *, network_type="drive"):
+    raw = nx.MultiDiGraph(crs="EPSG:4326", simplified=False, network_type=network_type,
                           retain_all=True, source="OpenStreetMap contributors / ODbL 1.0")
     # The selected and stored edge sets are checked using raw direction, original
     # segment ordinal and way ID, even when different ways share the same nodes.
@@ -170,7 +177,7 @@ def build_graphs(roads, rejected, area, counties, source=None):
     if source is None:
         omitted, node_tags = {}, {}
     else:
-        omitted, node_tags = outside_links(source, roads, drive_nodes, area)
+        omitted, node_tags = outside_links(source, roads, drive_nodes, area, network_type)
     keep.update(omitted)
     for node, tags in node_tags.items():
         raw.nodes[node]["osm_tags"] = json_text(tags)
