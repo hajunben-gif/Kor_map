@@ -1,0 +1,70 @@
+name: Publish Verified Road Network HTML to Repository
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-verified-road-html.yml"
+  workflow_dispatch:
+    inputs:
+      viewer_run_id:
+        description: "Successful HTML viewer workflow run; expected verified Nov 22 run"
+        type: string
+        required: true
+        default: "45017756217"
+      viewer_artifact_name:
+        description: "Exact successful viewer artifact name"
+        type: string
+        required: true
+        default: "verified-road-network-html-45017756217-1"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-verified-integrated-road-viewer
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download verified HTML viewer produced by successful workflow
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.viewer_artifact_name || 'verified-road-network-html-45017756217-1' }}
+          run-id: ${{ inputs.viewer_run_id || '45017756217' }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/verified-viewer
+      - name: Validate published HTML provenance and produce immutable ZIP
+        run: |
+          python -m scripts.package_verified_road_html \
+            --source "$RUNNER_TEMP/verified-viewer" \
+            --zip downloads/verified-integrated-road-network-20261120.zip
+      - name: Commit saved ZIP and checksum to main for teammates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- downloads/verified-integrated-road-network-20261120.zip downloads/verified-integrated-road-network-20261120.zip.sha256
+          git diff --cached --check
+          git commit -m "Publish verified Nov 2026 integrated road HTML map"
+          git push origin HEAD:main
+      - name: Summary
+        run: |
+          {
+            echo "## Verified interactive HTML saved in the repository"
+            echo ""
+            echo "- [Download durable ZIP](https://github.com/hajunben-gif/Kor_map/raw/refs/heads/main/downloads/verified-integrated-road-network-20261120.zip)"
+            echo "- Contains HTML, original viewer manifest and Korean quick-start guide"
+            echo "- Published from validated run ID ${{ inputs.viewer_run_id || '45017756217' }}"
+            echo "- Does not open nationwide PBF or modify road/QA inputs"
+          } >> "$GITHUB_STEP_SUMMARY"

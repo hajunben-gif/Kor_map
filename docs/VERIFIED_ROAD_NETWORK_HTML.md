@@ -4,12 +4,21 @@
 
 최신 통합 도로망은 기존 저장된 **Road Profiles 실행 #44992793405**와 **Connected Road Access QA #45010076547**의 성공한 Artifact에서 읽어 `integrated_road_network_20261120.html` 하나를 새로 생성합니다.
 
+## 팀 공유용 최신 HTML 지도 — 검증된 성공본 보관
+
+- **실제 배경지도까지 표시되는 최신 검증 실행:** [GitHub Actions #45017756217](https://github.com/hajunben-gif/Kor_map/actions/runs/45017756217) (`verified-road-network-html-45017756217-1`, 2026-11-22). 생성·테스트·원본 해시 검사를 통과했고, 사용자 컴퓨터의 Chrome/Edge에서 OpenFreeMap 배경지도가 실제 표시되는 것을 확인했습니다.
+- **팀원용 지속 다운로드:** [downloads/verified-integrated-road-network-20261120.zip](../downloads/verified-integrated-road-network-20261120.zip) — 이 파일은 아래 **게시 워크플로를 실행한 후** 생성되어야 합니다. 공개 Git 저장소에 저장되면 Actions의 90일 만료와 별개로 보존됩니다.
+- **초기 저장 방법:** 게시 워크플로가 `main`에 처음 병합될 때 **자동 실행**됩니다. 실패한다면 **Actions → Publish Verified Road Network HTML to Repository → Run workflow**로 재시도하세요. 성공한 뷰어 실행 ID `45017756217`과 Artifact 이름을 기본값으로 유지합니다. 해당 워크플로는 GitHub Actions 안에서 성공본 ZIP을 읽어 HTML 해시와 QA/도로망 출처를 재검증한 뒤, 3개 파일(HTML, 원본 뷰어 메타데이터, 한국어 열기 안내)을 압축하고, `downloads/`에 ZIP 및 SHA-256 검증 파일을 **커밋**합니다. 도로망 재구축/PBF 재다운로드는 하지 않습니다.
+- 팀원은 ZIP을 내려받아 압축 해제한 뒤 `integrated_road_network_20261120.html`을 더블클릭하면 됩니다. 온라인 OpenFreeMap 배경과 JS/CSS를 위해 인터넷이 필요합니다. OSM의 403 차단된 래스터 서버를 호출하지 않습니다.
+- **주의:** 저장소 `downloads/`에 실제 ZIP이 생성되기 전에는 위 지속 다운로드 링크가 작동하지 않습니다. 아직 게시하지 않은 경우에는 성공 실행의 Artifacts에서 바로 내려받으세요. GitHub Actions Artifact는 원래 업로드 시점 기준 90일 후 만료됩니다. 워크플로가 `contents: write`으로 main에 커밋할 수 있는 저장소 권한이 필요합니다.
+- **한계:** 지도 시각화 성공은 실제 차량 통행 가능·최단경로·침수 안전성을 증명하지 않습니다.
+
 ## 사용법
 
 1. GitHub Actions → **Verified Integrated Road Network HTML** → **Run workflow**를 선택합니다.
 2. 기본 실행 ID와 Artifact 이름을 유지합니다. 모두 **이미 계산된** 자료를 사용하며 전국 PBF를 재처리하지 않습니다.
 3. 성공한 실행 하단 Artifacts에서 `verified-road-network-html-...` ZIP을 내려받습니다.
-4. 압축을 해제한 뒤 `integrated_road_network_20261120.html` 파일을 더블클릭합니다. Python, 웹 서버 없이 **로컬 브라우저에서 열 수 있습니다. 차단된 OSM 래스터 타일 서버를 요청하지 않고 **OpenFreeMap 공개 벡터 배경지도(실제 도로·지명·건물)를 사용합니다.** 기존 두 군의 행정경계·도로·시설 데이터는 HTML에 내장됩니다. Leaflet/MapLibre JS/CSS 및 온라인 벡터 배경지도 로딩에는 인터넷 연결이 필요합니다. 배경지도가 차단되거나 WebGL을 사용할 수 없어도 검증된 도로선과 시설 마커는 표시됩니다.
+4. 압축을 해제한 뒤 `integrated_road_network_20261120.html` 파일을 더블클릭합니다. Python, 웹 서버 없이 **로컬 브라우저에서 열 수 있습니다.** 차단된 OSM 래스터 타일 서버 대신 **OpenFreeMap 공개 벡터 배경지도(실제 도로·지명·건물)**를 사용합니다. 기존 두 군의 행정경계·도로·시설 데이터는 HTML에 내장됩니다. Leaflet/MapLibre JS/CSS 및 온라인 벡터 배경지도 로딩에는 인터넷 연결이 필요합니다. 배경지도가 차단되거나 WebGL을 사용할 수 없어도 검증된 도로선과 시설 마커는 표시됩니다.
 5. 우측 레이어 선택기에서 **Drive+Service**(기본), **Drive**, **구호차량 후보망**을 켜거나 끌 수 있습니다. 하단 왼쪽 버튼으로 온라인 배경지도를 켜거나 끌 수 있습니다. 회색 점선은 군 경계, 파랑은 일반도로, 주황은 Service, 초록은 시설, 빨강은 최근접 도로 배정이 QA에서 보정된 시설입니다. 시설 클릭 시 세 모델의 기존 최근접 직선거리와 연결 적격 직선거리를 비교할 수 있습니다.
 
 ## 검증과 해석
