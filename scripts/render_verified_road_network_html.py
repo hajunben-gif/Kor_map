@@ -214,17 +214,24 @@ class OpenFreeMapBackground(MacroElement):
 
 
 def add_openfreemap_background(view):
-    """Insert public vector-map assets and GL layer ahead of road overlays."""
-    root = view.get_root()
-    root.header.add_child(folium.CssLink(
-        "https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.css"
-    ), name="openfreemap_maplibre_css")
-    root.header.add_child(folium.JavascriptLink(
-        "https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.js"
-    ), name="openfreemap_maplibre_js")
-    root.header.add_child(folium.JavascriptLink(
-        "https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"
-    ), name="openfreemap_leaflet_binding")
+    """Register MapLibre assets *after Leaflet* in Folium's own JS loading order.
+
+    Adding JavascriptLink directly to Figure.header can put the Leaflet bridge
+    before Leaflet itself; the page then renders roads but no vector basemap.
+    Folium's add_js_link registers resources after its built-in Leaflet scripts.
+    """
+    view.add_css_link(
+        "openfreemap_maplibre_css",
+        "https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.css",
+    )
+    view.add_js_link(
+        "openfreemap_maplibre_js",
+        "https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.js",
+    )
+    view.add_js_link(
+        "openfreemap_leaflet_binding",
+        "https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js",
+    )
     OpenFreeMapBackground().add_to(view)
 
 
