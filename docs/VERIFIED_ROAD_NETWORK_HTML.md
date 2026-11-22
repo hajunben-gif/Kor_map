@@ -43,3 +43,9 @@ python -m scripts.render_verified_road_network_html \
 - 지도 왼쪽 아래 `배경지도 끄기/켜기`를 누르면 배경만 전환할 수 있습니다. 도로망 3개 레이어와 시설 마커는 영향을 받지 않습니다.
 - 배경은 **온라인 지도**이므로 완전 오프라인 보기나 영구적인 무료 서비스 이용을 보증하지 않습니다. 서비스 조건과 서버 접근 가능 여부가 달라질 수 있습니다.
 - 지도 분석에 쓰는 검증된 도로망은 외부 지도 서비스의 데이터로 교체하지 않습니다.
+
+## 배경지도가 보이지 않는 경우 (2026-11-22 재검토)
+
+- 최초 OpenFreeMap 구현은 MapLibre GL과 Leaflet 연결 스크립트를 Folium HTML 헤더에 직접 삽입하여 **Leaflet보다 먼저 실행될 가능성**이 있었습니다. 라이브러리 등록을 Folium `Map.add_js_link()` / `add_css_link()`로 바꾸어 Leaflet → MapLibre GL → Leaflet 연결 플러그인 순으로 출력하도록 보완했습니다.
+- 이 문제는 HTML 생성/파일 해시 검사만으로 발견되지 않습니다. 외부 CDN 다운로드, 브라우저 WebGL 및 실제 벡터 스타일 로딩까지 확인한 것은 아닙니다.
+- 새 PR 병합 후 새로운 Actions 생성 ZIP을 열어야 적용됩니다. 같은 화면이 계속 나오면 F12 → Console/Network에서 `maplibre-gl.js`, `leaflet-maplibre-gl.js`, `tiles.openfreemap.org` 오류를 확인해야 합니다.
