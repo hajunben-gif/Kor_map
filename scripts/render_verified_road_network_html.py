@@ -217,13 +217,13 @@ def add_openfreemap_background(view):
     """Insert public vector-map assets and GL layer ahead of road overlays."""
     root = view.get_root()
     root.header.add_child(folium.CssLink(
-        "https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css"
+        "https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.css"
     ), name="openfreemap_maplibre_css")
     root.header.add_child(folium.JavascriptLink(
-        "https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"
+        "https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.js"
     ), name="openfreemap_maplibre_js")
     root.header.add_child(folium.JavascriptLink(
-        "https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"
+        "https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"
     ), name="openfreemap_leaflet_binding")
     OpenFreeMapBackground().add_to(view)
 
