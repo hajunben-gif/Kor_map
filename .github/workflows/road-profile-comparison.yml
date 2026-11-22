@@ -43,7 +43,7 @@ jobs:
           name: road-profile-comparison-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.PROFILE_OUTPUT }}/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 90
       - name: Summarize data validation
         run: |
           python - <<'PY'
