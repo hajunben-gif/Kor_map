@@ -89,3 +89,19 @@ python -m scripts.compare_road_profiles \
 ```
 
 전국 PBF·위치 인덱스는 임시 디렉터리 밖으로 배포하지 않으며 Git이나 Artifact에 포함하지 않습니다. 새 `--output`은 저장소 외부의 존재하지 않는 경로여야 합니다. 고정 PBF를 사용하지 않는 `--download` 실행은 실행 시점마다 데이터가 달라질 수 있습니다.
+
+## 저장된 세 모델의 일반도로 연결 접근거리 QA
+
+`python -m scripts.connected_access_qa --artifact-dir /path/to/extracted-profile-artifact --output /new/path/qa`는 저장된 profile Artifact만 읽습니다. 원본 PBF나 다운로드가 필요하지 않습니다. 기존 GraphML·시설 CSV·과거 결과는 덮어쓰지 않습니다. 산출물과 원본 Artifact 폴더는 분리해야 합니다.
+
+새 수동 워크플로 **Connected Road Access QA**는 `actions: read` 권한으로 기존 실행의 Artifact를 읽습니다. 기본 실행 ID는 `44992793405`, 이름은 `road-profile-comparison-44992793405-1`입니다. Artifact가 유효한지 확인하고, 만료·부재·체크섬 불일치에 실패합니다. 성공 시 별도 `connected-access-qa-…` Artifact를 90일 보존합니다. 기존 전국 PBF 분석은 재실행하지 않습니다.
+
+QA는 원래 방향 구간·형상·태그를 지역 source_road_audit.jsonl과 대조한 뒤 다음 지표를 구분합니다.
+
+- 기존 방식의 전체 간선까지 최근접 직선거리.
+- 일반 기준망과 왕복 연결된 방향 간선까지 최근접 직선거리: Drive 최대 WCC의 일반도로 노드가 가장 많은 SCC를 기준으로 고정하고, 각 profile에서 anchor와 가장 많이 겹치는 단일 SCC를 택합니다. 대상 u→v는 같은 기준 SCC→u 및 v→기준 SCC가 모두 성립해야 합니다. 단순 WCC 소속 검사나 간선의 직접 역방향 존재 검사로 대체하지 않습니다.
+- motorway/trunk와 링크는 시설 배정 대상에서 제외하고, 기존 무제약 최근접 지표에는 그대로 남깁니다. 동률 중 연결 대안이 있는지, 모든 동률 간선이 고립됐는지, 적격 간선이 없는지, 외곽 범위가 충분한지를 각각 표시합니다.
+
+출력: `facilities_connected_access_147.csv`(원본 147행·146개 평가·좌표 없는 1개 제외), `nearest_assignment_alerts.csv`, `edge_connected_eligibility.csv`, `sujeong_way_nodes.csv`, `sujeong_way_diagnosis.json`, `qa_metadata.json`, `qa_report_ko.md`. Component ID는 raw/단순화 또는 그래프 변경에 따라 달라지므로 원본 OSM 노드·간선으로 대응합니다. 원본에 없는 연결선 생성, 시설 출입구 자동 연결, 회전 제한 해석, 침수·최적화는 수행하지 않습니다.
+
+이 변경을 작성한 Cloud 세션에서는 실제 profile Artifact 전송이 프록시 403으로 차단됐습니다. 따라서 실제 146개 시설의 새 거리나 way 1228606370의 원본 노드 고립 원인을 계산했다고 주장하지 않습니다. 사용자 제공 관측과 코드 검토는 [별도 기록](../output/road_network_qa/sujeong_reported_20261122/report_ko.md)에 보존합니다. 합성 PBF 테스트의 거리 값은 실제 시설 조사 결과가 아닙니다.

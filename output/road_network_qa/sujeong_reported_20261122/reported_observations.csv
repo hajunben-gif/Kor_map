@@ -1,0 +1,4 @@
+시군명,시설일련번호,시설명,profile,user_reported_nearest_distance_m,user_reported_way_id,user_reported_wcc_id,user_reported_can_reach_ordinary,user_reported_reachable_from_ordinary,computed_connected_distance_m,verification_status
+청양군,18,수정초등학교 강당,drive_reference,82.462631,,,,,,user_reported_not_independently_recomputed
+청양군,18,수정초등학교 강당,drive_service,72.665399,1228606370,integrated_wcc_082,False,False,,user_reported_not_independently_recomputed
+청양군,18,수정초등학교 강당,relief_vehicle_candidate,,,,,,,not_computed
