@@ -1,0 +1,114 @@
+{
+  "status": "flood_depth_masks_computed_road_overlay_pending",
+  "timestamp_utc": "2026-11-23T15:46:53.178092+00:00",
+  "reference_url": "https://data.floodmap.go.kr/main/guide/api_reference?map=nationalRiverFloodMap#NationalMap-watershed",
+  "codebook_sha256": "7013f8e7819a7dd827349956dab545a2ade61e2b41eaa94c3259faa9112a1cc7",
+  "source_crs": "EPSG:5186",
+  "scenario_return_period_years": 100,
+  "source_feature_count": 20,
+  "source_files": [
+    {
+      "stem": "RFM_SGG_NTN_44760_100",
+      "district": "부여군",
+      "river_type": "국가하천",
+      "source_sha256": "91ae219bc63b2fe827c2ffe56e5bf5dd3b01fb1ec3cb2016b41d2b250ed11ff1",
+      "features": 5,
+      "feature_area_sum_km2": 52.383623
+    },
+    {
+      "stem": "RFM_SGG_RGN_44760_100",
+      "district": "부여군",
+      "river_type": "지방하천",
+      "source_sha256": "cbab0cb0f440eb228e4bfaaeed8eccaeb02ad8054459972db9af3788decab42e",
+      "features": 5,
+      "feature_area_sum_km2": 96.820556
+    },
+    {
+      "stem": "RFM_SGG_NTN_44790_100",
+      "district": "청양군",
+      "river_type": "국가하천",
+      "source_sha256": "ffd5285946fa3ead57a50b07bec85b75d7770d38d370b3d149fd427fd638b8a9",
+      "features": 5,
+      "feature_area_sum_km2": 9.263808
+    },
+    {
+      "stem": "RFM_SGG_RGN_44790_100",
+      "district": "청양군",
+      "river_type": "지방하천",
+      "source_sha256": "f066dcc1d52d50d7be6de986b55a38e7b33199e6d8716453dc4b4f756e652150",
+      "features": 5,
+      "feature_area_sum_km2": 31.600401
+    }
+  ],
+  "priority_rule": "deeper_SEG_CODE_priority_for_any_overlap_conservative_assumption",
+  "depth_classes": [
+    {
+      "code": "N330",
+      "depth_label_ko": "침수심 0.5m 미만",
+      "raw_class_union_km2": 13.266961,
+      "exclusive_priority_area_km2": 10.412044
+    },
+    {
+      "code": "N331",
+      "depth_label_ko": "침수심 0.5 ~ 1.0m",
+      "raw_class_union_km2": 15.162749,
+      "exclusive_priority_area_km2": 12.460015
+    },
+    {
+      "code": "N332",
+      "depth_label_ko": "침수심 1.0 ~ 2.0m",
+      "raw_class_union_km2": 28.306492,
+      "exclusive_priority_area_km2": 23.20348
+    },
+    {
+      "code": "N333",
+      "depth_label_ko": "침수심 2.0 ~ 5.0m",
+      "raw_class_union_km2": 72.698706,
+      "exclusive_priority_area_km2": 58.156049
+    },
+    {
+      "code": "N334",
+      "depth_label_ko": "침수심 5.0m 이상",
+      "raw_class_union_km2": 40.309857,
+      "exclusive_priority_area_km2": 40.309857
+    }
+  ],
+  "sum_original_feature_areas_km2": 190.068388,
+  "sum_per_code_union_areas_km2": 169.744765,
+  "sum_exclusive_priority_areas_km2": 144.541444,
+  "union_footprint_area_km2": 144.541444,
+  "duplicate_area_removed_km2": 45.526944,
+  "priority_coverage_symmetric_difference_m2": 0.006088,
+  "scenario_masks": {
+    "S0": {
+      "blocked_codes": [],
+      "closure_zone_area_km2": 0.0
+    },
+    "S1": {
+      "blocked_codes": [
+        "N331",
+        "N332",
+        "N333",
+        "N334"
+      ],
+      "closure_zone_area_km2": 134.1294
+    },
+    "S2": {
+      "blocked_codes": [
+        "N330",
+        "N331",
+        "N332",
+        "N333",
+        "N334"
+      ],
+      "closure_zone_area_km2": 144.541444
+    }
+  },
+  "limits": [
+    "This is NOT a verified simultaneous 100-year flood event.",
+    "The deepest-overlap rule is an explicit conservative scenario assumption, not a physical solution.",
+    "Road passability and bridge elevation have not been assessed.",
+    "Source official SegCode URL covers national rivers; confirm regional river semantics independently.",
+    "Flood geometry is still in source CRS EPSG:5186 to avoid reprojection-induced topology errors."
+  ]
+}
