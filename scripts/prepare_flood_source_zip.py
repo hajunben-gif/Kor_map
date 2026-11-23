@@ -17,6 +17,13 @@ EXPECTED = frozenset(
     f"RFM_SGG_{river}_{code}_100{ext}"
     for code in CODES for river in RIVERS for ext in EXTS
 )
+# Optional official map previews are not GIS inputs; silently skip them.
+# Accept archive-export suffixes such as "(1).png" from Windows downloads.
+import re
+MAP_IMAGE_RE = re.compile(
+    r"^RFM_SGG_(?:NTN|RGN)_(?:44760|44790)_100(?:\s*\(\d+\))?\.(?:png|jpe?g|tiff?)$",
+    re.IGNORECASE,
+)
 MAX_UNCOMPRESSED = 1024 * 1024 * 1024  # 1 GiB
 MAX_ARCHIVE_ITEMS = 40
 
@@ -43,7 +50,7 @@ def unpack_source(archive: Path, destination: Path) -> list[str]:
             # ZIPs may contain a parent folder; flatten required source files.
             name = path.name
             if name not in EXPECTED:
-                if name.startswith(".") or name in {"README.txt", "__MACOSX"}:
+                if name.startswith(".") or name in {"README.txt", "__MACOSX"} or MAP_IMAGE_RE.fullmatch(name):
                     continue
                 raise ValueError(f"Unexpected file: {item.filename}")
             mode = (item.external_attr >> 16) & 0xFFFF
