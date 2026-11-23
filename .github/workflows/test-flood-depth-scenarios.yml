@@ -1,0 +1,29 @@
+name: Test 100Y Flood Depth Scenarios
+
+on:
+  pull_request:
+    paths:
+      - "scripts/build_flood_depth_scenarios_100y.py"
+      - "tests/test_build_flood_depth_scenarios_100y.py"
+      - "config/flood_seg_code_100y.json"
+      - ".github/workflows/test-flood-depth-scenarios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install geospatial dependencies
+        run: python -m pip install "geopandas>=1.0,<2"
+      - name: Run synthetic depth-priority and S0-S2 tests
+        run: python -m unittest discover -s tests -p test_build_flood_depth_scenarios_100y.py -v
+      - name: Clarify evidence
+        run: echo "Synthetic geometry QA only. Real user SHPs are not uploaded or analyzed in Actions." >> "$GITHUB_STEP_SUMMARY"
