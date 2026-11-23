@@ -10,6 +10,9 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 from shapely.ops import unary_union
+from shapely import make_valid
+from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
+from shapely.validation import explain_validity
 
 DISTRICTS = {"44760": "부여군", "44790": "청양군"}
 RIVERS = {"NTN": "국가하천", "RGN": "지방하천"}
@@ -36,6 +39,74 @@ def km2(geometry):
     return round(float(geometry.area) / 1e6, 6)
 
 
+def _polygonal_components(geometry):
+    """Return polygonal parts of make_valid output; count dropped nonarea parts."""
+    if isinstance(geometry, (Polygon, MultiPolygon)):
+        return geometry, 0
+    if not isinstance(geometry, GeometryCollection):
+        raise ValueError(f"make_valid returned unsupported type: {geometry.geom_type}")
+    polygons = []
+    dropped = 0
+    for part in geometry.geoms:
+        if isinstance(part, Polygon):
+            polygons.append(part)
+        elif isinstance(part, MultiPolygon):
+            polygons.extend(part.geoms)
+        else:
+            dropped += 1
+    if not polygons:
+        raise ValueError("make_valid returned no polygonal geometry")
+    return unary_union(polygons), dropped
+
+
+def repair_after_reprojection(frame, stem):
+    """Repair only *new* post-reprojection errors, with strict area guardrails.
+
+    This does not change the source SHP on disk. Each repair is described in QA.
+    A repair changing too much area must stop for manual GIS review.
+    """
+    frame = frame.copy()
+    repairs = []
+    for index in frame.index:
+        geom = frame.at[index, "geometry"]
+        if geom is None or geom.is_empty:
+            raise ValueError(f"{stem}: missing geometry after reprojection, index={index}")
+        if geom.is_valid:
+            continue
+        reason = explain_validity(geom)
+        before = float(geom.area)
+        repaired, nonarea_parts = _polygonal_components(make_valid(geom))
+        if repaired.is_empty or not repaired.is_valid:
+            raise ValueError(f"{stem}: make_valid failed for index={index}: {reason}")
+        after = float(repaired.area)
+        change = abs(after - before)
+        # 1 square metre absolute, or 1 part per million of original area.
+        tolerance = max(1.0, before * 1e-6)
+        if change > tolerance:
+            raise ValueError(
+                f"{stem}: repair area change too large, index={index}, "
+                f"SEG_CODE={frame.at[index, 'SEG_CODE']}, "
+                f"before_m2={before:.6f}, after_m2={after:.6f}, "
+                f"change_m2={change:.6f}, limit_m2={tolerance:.6f}, "
+                f"reason={reason}. Manual GIS review required."
+            )
+        frame.at[index, "geometry"] = repaired
+        repairs.append({
+            "source_feature_index": int(index),
+            "seg_code": str(frame.at[index, "SEG_CODE"]),
+            "validity_reason_after_reprojection": reason,
+            "repaired_geometry_type": repaired.geom_type,
+            "nonarea_parts_discarded": nonarea_parts,
+            "area_before_m2": round(before, 6),
+            "area_after_m2": round(after, 6),
+            "absolute_area_change_m2": round(change, 6),
+            "maximum_permitted_area_change_m2": round(tolerance, 6),
+        })
+    if frame.geometry.is_empty.any() or (~frame.geometry.is_valid).any():
+        raise ValueError(f"{stem}: invalid geometry remains after cautious repair")
+    return frame, repairs
+
+
 def load_source(folder, district, river):
     stem = f"RFM_SGG_{river}_{district}_100"
     missing = [stem + x for x in EXTS if not (folder / (stem + x)).is_file()]
@@ -56,8 +127,7 @@ def load_source(folder, district, river):
     if set(frame["FLDLV_FREQ"]) != {"100"} or set(frame["SGG_CD"]) != {district}:
         raise ValueError(f"{stem}: frequency/district mismatch")
     frame = frame.to_crs(epsg=5179)
-    if frame.geometry.is_empty.any() or (~frame.geometry.is_valid).any():
-        raise ValueError(f"{stem}: invalid after reprojection")
+    frame, repairs = repair_after_reprojection(frame, stem)
     frame = frame[["SEG_CODE", "FLDLV_FREQ", "SGG_CD", "geometry"]].copy()
     frame["source_stem"] = stem
     frame["river_code"] = river
@@ -70,6 +140,8 @@ def load_source(folder, district, river):
         "raw_shp_sha256": checksum(folder / (stem + ".shp")),
         "area_sum_km2": round(float(frame.geometry.area.sum()) / 1e6, 6),
         "dissolved_area_km2": km2(union),
+        "reprojection_repair_count": len(repairs),
+        "reprojection_repairs": repairs,
     }
     return frame, union, record
 
@@ -115,6 +187,10 @@ def integrate(input_dir, output_dir):
         "union_area_km2": km2(footprint),
         "area_removed_by_union_km2": round(summed - km2(footprint), 6),
         "source_pairwise_overlaps": comparisons,
+        "all_reprojection_repairs": [
+            {"source": x["stem"], **repair}
+            for x in entries for repair in x["reprojection_repairs"]
+        ],
         "notes": [
             "Do not sum pairwise overlaps as total overlap; intersections may overlap.",
             "Union footprint contains no depth class, because code meanings are not verified.",
@@ -132,16 +208,34 @@ def integrate(input_dir, output_dir):
         "",
         "수심 코드 N330~N334 의미 미확정. 도로 차단 분석 이전의 범위 검증 산출물.",
         "",
-        "| 원본 | 피처 | 면적 합 km² | 원본 합집합 km² |",
-        "|---|---:|---:|---:|",
+        "| 원본 | 피처 | 면적 합 km² | 원본 합집합 km² | 재투영 오류 보정 |",
+        "|---|---:|---:|---:|---:|",
     ]
     for x in entries:
-        lines.append(f'| {x["stem"]} | {x["features"]} | {x["area_sum_km2"]} | {x["dissolved_area_km2"]} |')
+        lines.append(f'| {x["stem"]} | {x["features"]} | {x["area_sum_km2"]} | {x["dissolved_area_km2"]} | {x["reprojection_repair_count"]} |')
     lines += [
         "",
         f'- 합집합 전 총면적: {summed} km²',
         f'- 전체 범람구역 중복 제거 면적: {report["union_area_km2"]} km²',
         f'- 중복 제거 차이: {report["area_removed_by_union_km2"]} km²',
+        "",
+        "## 재투영으로 인한 유효성 보정 기록",
+        "",
+        "보정은 EPSG:5179로 변환한 작업용 피처에만 적용하며 원본 SHP는 그대로 보존합니다.",
+        "개별 면적 차이가 1 m² 또는 1ppm 중 큰 값을 넘으면 자동 중단합니다.",
+        "",
+        "| 원본 | 코드 | 오류 사유 | 보정 면적차 m² |",
+        "|---|---|---|---:|",
+    ]
+    for item in report["all_reprojection_repairs"]:
+        lines.append(
+            f'| {item["source"]} | {item["seg_code"]} | '
+            f'{item["validity_reason_after_reprojection"]} | '
+            f'{item["absolute_area_change_m2"]:.6f} |'
+        )
+    if not report["all_reprojection_repairs"]:
+        lines.append("| (없음) | - | - | 0 |")
+    lines += [
         "",
         "## 국가·지방/행정구역 원본 간 중첩 면적",
         "",
