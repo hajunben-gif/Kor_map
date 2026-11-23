@@ -303,7 +303,9 @@ def build(args):
     require(not output.exists(), f'Output already exists: {output}')
     require(not output.is_relative_to(args.road_artifact.resolve()), 'Choose output outside road inputs')
     if not args.validate_flood_only:
-        require(args.road_artifact.is_dir(), f'Extract the verified road profile artifact to {args.road_artifact}')
+        road, metadata = road_input_paths(args)
+        for path in (road, metadata):
+            require(path.is_file(), f'Missing verified road artifact input: {path}')
     LOG.info('Validating flood GeoPackage and archived area report')
     masks, flood_qa = read_flood(args.flood, args.flood_qa)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -343,8 +345,14 @@ def draw_map(stage, masks, overlays):
     web.save(stage / 'flood_road_map.html')
 
 
+def road_input_paths(args):
+    return (args.road_gpkg or args.road_artifact / 'road_network_profiles.gpkg',
+            args.road_metadata or args.road_artifact / 'metadata.json')
+
+
 def analyze(args, stage, masks, flood_qa):
-    road, road_qa = read_road_metadata(args.road_artifact)
+    road, metadata = road_input_paths(args)
+    road, road_qa = read_road_metadata(road, metadata)
     facility_hash = file_sha256(args.facilities)
     require(facility_hash == road_qa['verified_facility_sha256'], 'Facility CSV differs from verified artifact input')
     facilities = read_facilities(args.facilities)
@@ -427,7 +435,7 @@ def analyze(args, stage, masks, flood_qa):
     require(file_sha256(args.flood) == flood_qa['sha256']
             and file_sha256(args.flood_qa) == flood_qa['area_reference_sha256']
             and file_sha256(road) == road_qa['sha256']
-            and file_sha256(args.road_artifact / 'metadata.json') == road_qa['metadata_sha256']
+            and file_sha256(metadata) == road_qa['metadata_sha256']
             and file_sha256(args.facilities) == facility_hash, 'An input changed during analysis')
     validation = {
         'status': 'passed', 'analysis_crs': f'EPSG:{CRS}', 'flood': flood_qa, 'roads': road_qa,
@@ -466,6 +474,8 @@ def main():
                         default=ROOT / 'local_inputs/flood_depth_100y_result/flood_100y_depth_scenarios.gpkg')
     parser.add_argument('--flood-qa', type=Path, default=ROOT / 'results/flood_100y/flood_depth_qa.json')
     parser.add_argument('--road-artifact', type=Path, default=ROOT / 'local_inputs/road_profile_artifacts')
+    parser.add_argument('--road-gpkg', type=Path, help='Explicit path to the verified road profile GeoPackage')
+    parser.add_argument('--road-metadata', type=Path, help='Explicit path to the verified artifact metadata.json')
     parser.add_argument('--facilities', type=Path, default=ROOT / FACILITIES)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--validate-flood-only', action='store_true')

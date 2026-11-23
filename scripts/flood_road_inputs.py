@@ -102,17 +102,15 @@ def read_flood(path, report_path):
     }
 
 
-def read_road_metadata(directory):
-    path = directory / 'metadata.json'
+def read_road_metadata(gpkg, path):
     meta = json.loads(path.read_bytes())
     source = meta['source']
     require(meta['status'] == 'data_validated' and source['sha256'] == SNAPSHOT
             and source['data_timestamp'].startswith('2026-11-20'), 'Unexpected road snapshot')
     require(meta['verification']['source_directed_segments_preserved'], 'Missing direction verification')
     require(meta['verification']['graphml_gpkg_roundtrips'], 'Missing GeoPackage verification')
-    gpkg = directory / 'road_network_profiles.gpkg'
     digest = file_sha256(gpkg)
-    require(digest == meta['output_sha256'][gpkg.name], 'Road GeoPackage differs from artifact manifest')
+    require(digest == meta['output_sha256']['road_network_profiles.gpkg'], 'Road GeoPackage differs from artifact manifest')
     return gpkg, {'source': source, 'path': str(gpkg), 'sha256': digest,
                   'metadata_sha256': file_sha256(path), 'native_crs': 'EPSG:4326',
                   'verified_facility_sha256': meta['input_sha256'][FACILITIES.as_posix()]}

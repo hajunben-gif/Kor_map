@@ -13,18 +13,66 @@
 
 도로망 ZIP의 게시 SHA-256은 `59e54be3a566c7ef44d5ad6192c2440c5b356518e75882ca7d75a4b45db9158c`다. 실행 시 GeoPackage와 시설 CSV를 Artifact 메타데이터의 파일 해시와 비교한다. [GitHub Actions 실행 기록](https://github.com/hajunben-gif/Kor_map/actions/runs/44992793405)
 
-## 실행
+## Windows PowerShell 실행
 
-아래 명령은 저장소 루트에서 실행한다. Windows에서는 `python` 대신 `py`를 사용할 수 있다. 출력 경로에는 새 폴더를 지정한다.
+GitHub Actions 실행 기록에서 `road-profile-comparison-44992793405-1` ZIP을 다운로드한다. 아래 예시는 ZIP을 다운로드 폴더에 저장하고, 저장소를 `Documents\Kor_map`에 체크아웃한 경우다. 다른 위치라면 해당 변수만 수정한다. 현재 작업 브랜치를 체크아웃한 상태에서 실행한다.
 
-```sh
-python -m pip install -r requirements.txt -r requirements-pbf-audit.txt
-python -m scripts.build_flood_road_scenarios --validate-flood-only --output work/flood-input-check
-python -m scripts.build_flood_road_scenarios --output work/flood-road-scenarios
-python -m unittest discover -s tests -p test_build_flood_road_scenarios.py
+```powershell
+Set-Location (Join-Path $env:USERPROFILE 'Documents\Kor_map')
+$ErrorActionPreference = 'Stop'
+
+$zip = Join-Path $env:USERPROFILE 'Downloads\road-profile-comparison-44992793405-1.zip'
+if ((Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash -ne '59e54be3a566c7ef44d5ad6192c2440c5b356518e75882ca7d75a4b45db9158c') {
+    throw '도로망 Artifact ZIP의 SHA-256이 게시값과 다릅니다.'
+}
+$artifactDir = Join-Path $PWD.Path 'local_inputs\road_profile_artifacts'
+Expand-Archive -LiteralPath $zip -DestinationPath $artifactDir
+
+$flood = Join-Path ([Environment]::GetFolderPath('Desktop')) 'flood_depth_100y_result\flood_100y_depth_scenarios.gpkg'
+$floodQA = Join-Path $PWD.Path 'results\flood_100y\flood_depth_qa.json'
+$road = Join-Path $artifactDir 'road_network_profiles.gpkg'
+$metadata = Join-Path $artifactDir 'metadata.json'
+foreach ($file in @($flood, $floodQA, $road, $metadata)) {
+    if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "입력 파일이 없습니다. $file" }
+}
+
+py -3.12 -m venv .venv
+if ($LASTEXITCODE -ne 0) { throw 'Python 가상환경 생성 실패' }
+$python = Join-Path $PWD.Path '.venv\Scripts\python.exe'
+& $python -m pip install -r requirements.txt -r requirements-pbf-audit.txt
+if ($LASTEXITCODE -ne 0) { throw '패키지 설치 실패' }
+
+$run = Get-Date -Format 'yyyyMMdd-HHmmss'
+$floodCheck = Join-Path $PWD.Path "work\flood-input-check-$run"
+$output = Join-Path $PWD.Path "work\flood-road-scenarios-$run"
+& $python -m scripts.build_flood_road_scenarios --flood "$flood" --flood-qa "$floodQA" --validate-flood-only --output "$floodCheck"
+if ($LASTEXITCODE -ne 0) { throw '침수 GeoPackage 검증 실패' }
+& $python -m scripts.build_flood_road_scenarios --flood "$flood" --flood-qa "$floodQA" --road-gpkg "$road" --road-metadata "$metadata" --output "$output"
+if ($LASTEXITCODE -ne 0) { throw '도로망 시나리오 분석 실패' }
+
+Get-Content -LiteralPath (Join-Path $floodCheck 'flood_input_validation.json') -Encoding UTF8
+Get-Content -LiteralPath (Join-Path $output 'validation.json') -Encoding UTF8
+Get-Content -LiteralPath (Join-Path $output 'report_ko.md') -Encoding UTF8
 ```
 
-입력 위치는 `--flood`, `--flood-qa`, `--road-artifact`, `--facilities`로 지정할 수 있다. 진행 로그는 레이어 검증, 프로필 처리량, 시나리오 내보내기를 표시한다.
+이미 ZIP을 풀어 둔 경우 `$artifactDir`을 해당 디렉터리로 지정하고 다운로드 검증·압축 해제 단계를 생략한다. 두 도로 파일은 서로 다른 디렉터리에도 둘 수 있다. `--road-artifact`로 기존처럼 두 파일이 든 디렉터리를 지정할 수 있으며, `--road-gpkg`와 `--road-metadata`는 각각 해당 경로를 우선한다. 다른 시설 CSV 경로가 필요하면 `--facilities`로 지정한다. 시설 CSV의 SHA-256은 검증된 도로망 Artifact의 기록과 일치해야 한다.
+
+GeoPackage와 실행 결과는 Git에서 제외되는 `local_inputs/` 또는 `work/`에 보관한다. 실행 로그에는 레이어 검증, 프로필 처리량, 시나리오 내보내기 진행 상황이 표시된다.
+
+## 테스트 및 기존 SHP 감사 오류
+
+해당 브랜치에서 추가한 합성 테스트 4건이 통과했다. 클라우드 전체 테스트 47건에서는 기존 `test_reject_incorrect_crs` 1건이 오류를 냈다. 이 환경은 Python 3.12, pyproj 3.8.0, PROJ 9.8.1을 사용했다. 브랜치 변경 전 기준 커밋 `2c4e9d8`의 테스트와 감사 스크립트에서도 동일한 오류를 재현했다.
+
+테스트의 `GEOGCS["WGS 84"]`는 CRS가 다른 정상 WKT를 표현하는 데 필요한 DATUM 또는 ENSEMBLE을 포함하지 않는다. PROJ가 입력을 거부해 EPSG 비교 전에 `pyproj.exceptions.CRSError`가 발생하고, 테스트는 `ValueError`를 기대한다. 현재 파서가 잘못된 WKT를 거부하는 방식과 기존 테스트의 예외 기대값이 맞지 않는 사례다. 이 브랜치의 분석 코드 변경으로 인한 회귀는 기준 커밋 재현 결과에서 확인되지 않았다. 기존 테스트와 감사 코드는 유지했다.
+
+```powershell
+& $python -c "import pyproj; print(pyproj.__version__, pyproj.proj_version_str)"
+& $python -m unittest discover -s tests -p test_build_flood_road_scenarios.py
+& $python -m unittest discover -s tests -p test_flood_shp_100y.py
+& $python -m unittest discover -s tests
+```
+
+변경 전 결과는 별도 체크아웃 `git worktree add --detach ..\Kor_map-shp-baseline 2c4e9d8`에서 같은 Python 실행 파일 및 SHP 감사 테스트 명령으로 재현할 수 있다. Windows 실데이터 분석과 실행 결과 검증은 이후 로컬에서 수행한다.
 
 ## 판정 및 집계
 

@@ -106,11 +106,15 @@ class PipelineTests(unittest.TestCase):
             'input_sha256': {FACILITIES.as_posix(): file_sha256(facilities)},
         }))
         return Namespace(flood=gpkg, flood_qa=qa, road_artifact=road, facilities=facilities,
-                         output=root / 'result', validate_flood_only=False)
+                         output=root / 'result', validate_flood_only=False, road_gpkg=None, road_metadata=None)
 
     def test_pipeline_and_input_mismatches(self):
         with tempfile.TemporaryDirectory() as temp:
             args = self.fixture(Path(temp))
+            args.road_gpkg = Path(temp) / 'verified-network.gpkg'
+            args.road_metadata = Path(temp) / 'verified-metadata.json'
+            (args.road_artifact / 'road_network_profiles.gpkg').rename(args.road_gpkg)
+            (args.road_artifact / 'metadata.json').rename(args.road_metadata)
             with patch.dict(PROFILES, {p: (2, 2) for p in PROFILES}):
                 build(args)
             with (args.output / 'scenario_comparison.csv').open(encoding='utf-8-sig') as stream:
