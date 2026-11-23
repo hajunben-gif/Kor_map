@@ -1,0 +1,168 @@
+# PROJECT HANDOFF — 부여·청양 침수 대비 긴급구호 창고·수송 네트워크 최적화
+
+> 최신 인수인계 기준: 2026-11-24 (KST)  
+> 저장소: https://github.com/hajunben-gif/Kor_map  
+> 목적: 새로운 개발자나 Codex가 **기존 검증 결과를 잃지 않고** GIS 도로망 중첩과 물류 최적화 단계로 이어갈 수 있게 한다.
+
+## 0. 먼저 읽을 사항
+
+- **최신 진행 상태:** 국가·지방하천 100년 빈도 SHP 4종을 실제 사용자의 로컬 PC에서 중첩 통합하여, 공식 SEG_CODE 등급 기반 침수심 공간 분할 및 S0·S1·S2 **면적 마스크**까지 계산했다. **도로 중첩, 실제 차단 간선 집계, 시나리오별 최단경로, 창고입지/운송 최적화는 아직 실행하지 않았다.**
+- **실제 GIS GeoPackage는 아직 Git 저장소에 없다.** 사용자의 Windows PC `Desktop\flood_depth_100y_result\flood_100y_depth_scenarios.gpkg`와 함께 JSON·MD 보고서가 생성됐고, 3개 파일은 이 프로젝트의 ChatGPT 대화에도 제출됐다. JSON·MD 검증 보고서는 `results/flood_100y/`로 GitHub 저장소에 보존했다. **GitHub를 clone해도 자동으로 포함되지 않는다.** 다음 단계에서 로컬 Codex가 접근할 수 있는지 먼저 확인한다.
+- **Codex Cloud와 로컬 PC 파일은 별개**다. 클라우드 GitHub 연결만으로 사용자의 바탕화면 SHP/GPKG를 읽을 수 없다. 가능한 경우 로컬 Codex로 저장소와 GIS 결과물 모두 접근할 수 있도록 한다.
+- 공개 저장소에 원본 SHP, GPKG, 시설 주소 등 민감하거나 재배포 조건이 불확실한 자료를 올리기 전에 이용약관과 크기·배포권한을 확인한다. 원본 비가공 GIS SHP를 공개 저장소로 자동 업로드하지 않는다.
+- 사용자 검증 없이 계산 결과의 정확도, 통행 허용, 차량 안전을 확정하지 않는다. 보정·누락·가정은 QA 보고서에 남긴다.
+
+## 1. 연구 목표·범위
+
+집중호우로 인한 침수위험을 고려한 **충청남도 부여군·청양군의 긴급구호물자 비축시설 입지와 수송 네트워크 최적화** 프로젝트.
+
+주요 구상:
+1. 부여군·청양군과 군 경계 약 2km 완충영역의 검증된 OSM 방향성 도로망 확보
+2. 정부 제공 하천범람 위험지도(국가하천·지방하천, 각 100년 빈도)의 침수심 등급을 공간적으로 합성
+3. 도로 노선과 침수심 마스크의 공간 중첩 및 분절, S0/S1/S2 시나리오별 유효 네트워크 구성
+4. 구호시설·후보 창고 위치·수요를 네트워크에 연결, 우회거리 및 접근성·연결성 비교
+5. 물류 최적화 모형(예: 설비입지/용량제약/다중 시나리오 비용·수요·운송) 설계·검증·민감도 분석
+
+아직 창고 후보지·창고별 비용·비축량·수요량·차량 사양 등 입력치와 정확한 목적함수가 완전히 정해지지 않았다. 최적화 완료처럼 소개하면 안 된다.
+
+## 2. 최신 도로망·구호시설 (완료, 재사용)
+
+- Geofabrik South Korea 원본: **2026-11-20** 스냅샷. PBF SHA256: `492ceebb946500fa54dd1b460b4ff923884dd9e673f65d3750e1d60122b85a8e`. 원본 전국 PBF 파일은 Git에 보관하지 않는다.
+- 분석영역: 부여군+청양군 경계 합집합의 약 2km 버퍼; 도로 그래프는 **방향성** 보존.
+- `drive_reference`: 14,390 노드, 32,085 방향 간선.
+- `drive_service`: 24,457 노드, 54,893 방향 간선.
+- `relief_vehicle_candidate`: 24,447 노드, 54,867 방향 간선. **구호차량 통행이 실증·허가된 도로망이 아니라 후보 검토망**.
+- 시설 147개 중 좌표 확보 146개, 미확보 1개(`대동마을회관`). 주소 대표점은 실제 출입구가 아니다.
+- 대표적인 시설 접속 QA: `수정초등학교 강당`과 `지곡리회관`에서 원시 최근접 도로 선정과 실제 연결 후보 사이 차이가 있어 QA 규칙·선택 결과를 보존했다.
+- 최신 도로망과 시설 연결 적격 판정 코드·문서: `scripts/compare_road_profiles.py`, `scripts/connected_access_qa.py`, `docs/VERIFIED_ROAD_NETWORK_HTML.md`.
+- 검증된 Actions 원본: road profiles `#44992793405`, access QA `#45010076547`, HTML 뷰어 `#45017756217`. Artifact는 영구 보관이 아닐 수 있다. `downloads/verified-integrated-road-network-20261120.zip`에 팀 공유용 HTML이 게시된 경우 별도로 사용 가능.
+- 도로 GraphML과 GeoPackage 원본은 Actions artifact 산출물. **HTML 지도 ZIP만으로 5만 개 도로 간선을 재분석할 수 있다고 가정하지 않는다.** 중첩 분석에는 분석용 프로필 GeoPackage 또는 GraphML/원본 좌표 데이터가 필요하다.
+- 원본 도로망 ID `edge_uid`, `parent_edge_id`, `source_segment_ids`, `source_node_ids` 등을 분할 후에도 보존하여 추적한다. 양방향 간선 중복 집계와 profile 간 OSM segment ID 차이를 구분한다.
+
+## 3. 실제 100년 빈도 홍수지도 입력·코드표
+
+원본 파일 네 세트(각각 `.shp/.shx/.dbf/.prj/.cpg`):
+- 부여군 국가하천: `RFM_SGG_NTN_44760_100`
+- 부여군 지방하천: `RFM_SGG_RGN_44760_100`
+- 청양군 국가하천: `RFM_SGG_NTN_44790_100`
+- 청양군 지방하천: `RFM_SGG_RGN_44790_100`
+
+원본 좌표계 **EPSG:5186**, 각 SHP 5 MultiPolygon 피처, 총 20개; 구조·유효성 QA 통과. 코드: `SEG_CODE=N330,N331,N332,N333,N334`, `FLDLV_FREQ=100`.
+
+침수심 대응표 출처: [홍수위험지도 정보제공포털 국가하천 API 참조](https://data.floodmap.go.kr/main/guide/api_reference?map=nationalRiverFloodMap#NationalMap-watershed). 사용자가 공식 `SegCode` 표 내용을 직접 제공했고 `config/flood_seg_code_100y.json`, `docs/FLOOD_SEG_CODE_CODEBOOK.md`에 기록했다. 원격 API 페이지의 독립적인 전문 재열람은 접속 시간 초과로 불완전했으므로 출처 링크와 원문 발췌를 보존한다. **국가하천 명세의 코드 뜻을 지방하천에도 적용하는 것은 동일 코드 체계라는 가정이며, 지방하천 명세/공식 지도와 별도 교차검증하면 더 좋다.**
+
+| 코드 | 범례 수심 |
+|---|---|
+| `N330` | 0.5m 미만 |
+| `N331` | 0.5~1.0m |
+| `N332` | 1.0~2.0m |
+| `N333` | 2.0~5.0m |
+| `N334` | 5.0m 이상 |
+
+정확한 수심(m)을 범위 내부에서 추정하거나, `N330`에 0.3m 임계값을 정확히 적용할 수 없다.
+
+## 4. 실제 GIS 통합 결과 — 사용자 PC에서 실행 완료
+
+로컬 실행 코드: `scripts/build_flood_depth_scenarios_100y.py`.
+
+Windows PowerShell (`Kor_map-main` 루트에서 실행):
+
+```powershell
+py -m scripts.build_flood_depth_scenarios_100y --input-dir "$env:USERPROFILE\Desktop\flood_100y_raw" --output-dir "$env:USERPROFILE\Desktop\flood_depth_100y_result"
+```
+
+산출물:
+- `flood_depth_100y_result/flood_100y_depth_scenarios.gpkg` (실제 지오메트리, **Git에 미업로드**)
+- `results/flood_100y/flood_depth_qa.json` (실제 숫자·원본 해시; GitHub 저장 완료)
+- `results/flood_100y/flood_depth_qa.md` (한국어 보고서; GitHub 저장 완료)
+
+**사용자가 제출한 실제 QA 보고서**의 수치(2026-11-23 15:46 UTC, 원본 EPSG:5186에서 계산):
+
+| 계산 항목 | 결과 |
+|---|---:|
+| 20개 원본 폴리곤 면적의 단순 합 | **190.068388 km²** |
+| 중복 제거한 전체 침수구역(=S2) | **144.541444 km²** |
+| 차감된 중복 포함 면적 | **45.526944 km²** |
+| S1: `N331~N334` 범위 | **134.129400 km²** |
+| S0: 차단구역 없음 | **0 km²** |
+| 우선순위 적용 후 5등급 면적 합 | **144.541444 km²** |
+| 공간 분할의 대칭차 | **0.006088 m²** |
+
+가장 깊은 등급부터 우선 할당한 각 배타적 면적:
+- `N330`: 10.412044 km²
+- `N331`: 12.460015 km²
+- `N332`: 23.203480 km²
+- `N333`: 58.156049 km²
+- `N334`: 40.309857 km²
+
+이 숫자는 GIS 실행 프로그램의 JSON/MD QA 보고서상 일관성을 확인한 값이다. **업로드된 GeoPackage 전체 레이어·도형에 대한 독립적인 재검증은 도구 실행 실패로 완료되지 않았다.** Codex의 첫 작업으로 읽기 전용 검증을 수행할 것.
+
+본 통합은 **국가·지방하천 각각의 100년 빈도 위험도지도를 하나로 겹친 합성 시나리오**이지, 실제 한 번의 동시 발생 100년 빈도 홍수를 뜻하지 않는다. 겹친 위치는 **가장 깊은 코드 우선**이라는 연구상 보수적 가정으로 해결했다.
+
+과거 단순 SHP 감사의 면적 합계 약 189.93km²는 EPSG:5179로 재투영하여 계산한 값으로, 지금의 EPSG:5186 원본 좌표계 결과 190.07km²와 구분한다.
+
+### GIS GeoPackage 내부 예상 레이어
+
+- `source_categories`: 원본 피처 20개와 원본 `SEG_CODE`, 출처
+- `depth_priority_5`: 겹침 없이 더 깊은 수심 등급 우선으로 재분할된 5개 심도 영역
+- `flood_union_footprint`: 침수 전체 합집합
+- `scenario_s1_closure_zone`: N331~N334
+- `scenario_s2_closure_zone`: N330~N334
+- S0는 빈 차단구역이므로 별도 geometry 레이어 없음
+- 좌표계 모두 EPSG:5186
+
+## 5. S0/S1/S2 의미 — 아직 도로 폐쇄 결과 아님
+
+| 시나리오 | 침수구역에 의해 제외될 도로 구간을 정의하는 공간 마스크 | 가정 |
+|---|---|---|
+| S0 | 없음 | 평상시 기준망 |
+| S1 | `N331~N334` (0.5m 이상 등급) | `N330`의 얕은 등급을 허용하는 상대적으로 완화된 가정 |
+| S2 | `N330~N334` 전체 | 침수 범람지도의 모든 등급 차단을 가정한 보수적 비교 |
+
+- 통행 가능 여부는 수심 외에 유속·교량 높이·노면·통제 지시·차량 유형에 영향을 받는다. 현장 안전 근거로 사용 금지.
+- 평면상 공간 교차가 차량이 주행하는 도로 노면의 침수라는 뜻은 아니다. 교량/고가를 검토 표시해 거짓 양성을 줄인다.
+- 나중에 네트워크 전체 간선을 무조건 삭제하는 방식이 아니라, **실제로 침수범위와 겹치는 구간만 분할**하고 남은 구간은 연결 위상을 보존하도록 설계해야 한다.
+- 다만 가상의 분할 노드나 도로 접속을 임의로 만들어서는 안 된다. 양방향/일방통행과 원본 방향별 segment 연결성을 유지한다.
+
+## 6. 기존 시행착오와 그 원인
+
+1. `integrate_flood_100y.py`에서 5186→5179 재투영 이후 `RFM_SGG_RGN_44760_100`이 도형 invalid 판정되어 중단된 적 있다. 이후 보정/면적 변화 로깅을 구현했지만 완성본의 분석은 **재투영 없이 원본 EPSG:5186에서 수행**하는 `build_flood_depth_scenarios_100y.py`를 기준으로 한다.
+2. `verify_flood_seg_code.py`에서 5186→4326 후 simplify된 `N333` 폴리곤이 invalid로 판정되어 시각화가 중단된 적 있다. 이 뷰어는 코드표를 몰랐을 때의 검증 보조 도구다. 공식 SEG_CODE 표를 확보했으므로 **지금부터 모델링 주 진입점으로 사용하지 않는다.**
+3. 초기 도로망을 군별 경계에서 따로 자르면 죽림리 쪽 경계 교량·진입도로가 사라지는 문제가 있었다. 반드시 **두 군 통합영역 및 버퍼**에서 구축한 검증 도로망을 재사용한다.
+4. 거대한 복합 MultiPolygon의 반복 `unary_union/difference`는 계산 시간이 매우 길 수 있다. 로컬 실행 중 CPU 누적 시간이 늘어나며 실제 작업이 진행되는 사례를 확인했다. 향후 중간 진행 로그, 캐싱, 공간 인덱스, 지오메트리 분할 등을 적용해 효율을 높이되 결과 정확도·면적 보존을 우선한다.
+
+## 7. Codex 다음 작업 — 권장 순서
+
+1. **읽기 전용 실데이터 재검증:** 업로드된 GPKG의 SQLite 무결성, 5개 레이어, EPSG:5186, 원본 20개/우선순위 5개 피처, S1⊆S2, S2=전체 합집합, 면적 오차, `flood_depth_qa.json`과 일치 확인. 과도한 전체 도형 연산은 시간과 메모리를 관리한다.
+2. **도로망 원본 구하기:** road profiles의 GraphML과 `road_network_profiles.gpkg`를 기존 검증 Actions artifact에서 확보하거나 검증된 로컬 사본 사용. 유효성/방향성/원본 식별자와 PBF SHA를 검증한다. HTML 뷰어 ZIP과 분석 원본을 혼동하지 않는다.
+3. **좌표계·공간 인덱스 기반 간선 중첩:** 도로좌표 4326→5186 변환 뒤 작업용 도형에서만 `make_valid` 등 보정 여부 기록. 도로 선형을 가능한 한 실제 침수 경계에서 분할하고, 출처 ID를 유지한다.
+4. **S0/S1/S2 비교:** 전체·방향별 간선/길이, 교량·고가 검토, connected components, 구호시설 접근 가능성, 회복력 지표 생성. 차단 적용 후의 방향성 도로망 WCC/SCC/도달성을 구분한다. 정상/차단 모두 회전금지·진입 허용 등을 자동 확정하지 않는다.
+5. **경로 분석과 최적화:** 기준 창고·물자수요·비축량·운송차량·비용을 분리해 정의한 뒤 다중 시나리오 입지/수송 모형(CFLP/MILP 등)을 설계. 단순 최근접 직선거리 결과를 운송 시간으로 쓰지 않는다.
+6. **재현성 보장:** 실제 산출물의 해시, 중간 스텝 데이터, 예외, 계산 시간, 좌표계, 공식 자료 라이선스, 비교 표/그림을 버전 관리한다.
+
+## 8. Codex 환경/파일 보관 규칙
+
+- 현재 Git 저장소는 공개 저장소다. **사용자의 로컬 SHP와 GPKG를 자동으로 Git에 커밋하지 말 것.**
+- 추천 로컬 구조(새로 만들어도 됨):
+  - `local_inputs/flood_100y_raw/` — 원본 20개 SHP 구성 파일
+  - `local_inputs/flood_depth_100y_result/flood_100y_depth_scenarios.gpkg` — 실제 분석본
+  - `local_inputs/flood_depth_100y_result/flood_depth_qa.json` / `.md` — 실데이터 보고서
+  - `local_inputs/road_profile_artifacts/` — 필요시 저장한 검증 도로망 원본
+  - 위 `local_inputs/`는 Git에 올리지 않도록 `.gitignore`에 추가한다.
+- QA JSON·MD는 실제 로컬 실행의 결과로 `results/flood_100y/` 폴더에 게시했다. 보고서에는 원본 SHP SHA256과 공식 출처 URL 및 면적 통계가 들어 있지만 전체 SHP 기하학은 포함되지 않는다.
+- 공개 가능한 GPKG도 크기와 재배포 조건을 확인한 후 별도 데이터 배포 방법(Git LFS / GitHub Release / 외부 스토리지)을 결정한다. `.gpkg`를 코드 저장소에 무조건 커밋하면 저장소가 불필요하게 커질 수 있다.
+
+## 9. 주요 참고 파일
+
+- 코드표: `config/flood_seg_code_100y.json`
+- 코드 출처 설명: `docs/FLOOD_SEG_CODE_CODEBOOK.md`
+- 실데이터 통합 재현 코드: `scripts/build_flood_depth_scenarios_100y.py`
+- 통합 실행 안내: `docs/FLOOD_DEPTH_SCENARIOS_100Y.md`
+- 원본 GIS 감사: `scripts/audit_flood_shp_100y.py`, `docs/FLOOD_SHP_100Y_AUDIT.md`
+- 도로망 비교: `scripts/compare_road_profiles.py`
+- 시설 연결 QA: `scripts/connected_access_qa.py`
+- 최신 지도·데이터 위치: `docs/VERIFIED_ROAD_NETWORK_HTML.md`
+- 죽림리 경계 이슈: `docs/JUKRIM_CLOUD_HANDOFF.md`
+- 오래된 군별 예비 결과는 `RESULTS.md`에 남아 있으므로 최신 수치와 혼동하지 말 것.
+
+**요약:** 지금까지 실제 확인된 최신 상태는 **146개 시설 좌표·3종 방향성 도로망 검증 + 4종 100년 빈도 SHP 침수심 통합·면적 시나리오 계산 완료**다. 다음 실작업은 검증된 **실제 GPKG + 분석용 도로 그래프를 같은 실행환경에 확보**하고, 도로 침수 중첩을 정교하게 계산하는 것이다.

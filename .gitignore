@@ -13,3 +13,9 @@ work/
 *.pbf
 *.pbf.*
 node-index.sqlite*
+
+# Local-only research GIS datasets; verify license before publishing
+local_inputs/
+*.gpkg
+*.gpkg-shm
+*.gpkg-wal
