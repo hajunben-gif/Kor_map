@@ -1,0 +1,77 @@
+{
+  "title": "100년 빈도 하천범람지도 SEG_CODE 침수심 코드표",
+  "source": {
+    "publisher": "홍수위험지도 정보제공포털",
+    "url": "https://data.floodmap.go.kr/main/guide/api_reference?map=nationalRiverFloodMap#NationalMap-watershed",
+    "section": "NationalMap-watershed",
+    "terminology": "SegCode",
+    "verification": "User transcribed the SegCode table from this official URL on 2026-11-23. Automated site fetch timed out; independent verification against the live page remains pending."
+  },
+  "codes": [
+    {
+      "code": "N330",
+      "depth_label_ko": "침수심 0.5m 미만",
+      "lower_bound_m": 0,
+      "upper_bound_m": 0.5
+    },
+    {
+      "code": "N331",
+      "depth_label_ko": "침수심 0.5 ~ 1.0m",
+      "lower_bound_m": 0.5,
+      "upper_bound_m": 1
+    },
+    {
+      "code": "N332",
+      "depth_label_ko": "침수심 1.0 ~ 2.0m",
+      "lower_bound_m": 1,
+      "upper_bound_m": 2
+    },
+    {
+      "code": "N333",
+      "depth_label_ko": "침수심 2.0 ~ 5.0m",
+      "lower_bound_m": 2,
+      "upper_bound_m": 5
+    },
+    {
+      "code": "N334",
+      "depth_label_ko": "침수심 5.0m 이상",
+      "lower_bound_m": 5,
+      "upper_bound_m": null
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "S0",
+      "description_ko": "평상시 기준망: 침수심에 의한 도로 차단 없음",
+      "blocked_seg_codes": []
+    },
+    {
+      "name": "S1",
+      "description_ko": "0.5m 이상에 해당하는 범례 등급의 도로 차단",
+      "blocked_seg_codes": [
+        "N331",
+        "N332",
+        "N333",
+        "N334"
+      ]
+    },
+    {
+      "name": "S2",
+      "description_ko": "침수로 표시된 모든 범례 등급의 도로 차단",
+      "blocked_seg_codes": [
+        "N330",
+        "N331",
+        "N332",
+        "N333",
+        "N334"
+      ]
+    }
+  ],
+  "limitations": [
+    "Only categorical ranges; do not assign exact water depths within a category.",
+    "Data dictionary source is the national river flood map API; same code strings occur in regional river SHPs, but cross-product code semantics should be confirmed or cross-validated.",
+    "Boundary inclusivity of 0.5m/1m/2m/5m is not specified by the copied phrase; use categorical membership, not numerical exact-depth thresholds.",
+    "Road intersections are not proof of passability or actual water depth on bridges.",
+    "100-year national/regional geometrical union is a composite hazard scenario, not a single joint 100-year event."
+  ]
+}
