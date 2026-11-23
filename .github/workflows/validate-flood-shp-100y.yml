@@ -1,0 +1,107 @@
+name: Validate 100-Year Flood SHP Data
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/validate-flood-shp-100y.yml"
+      - "scripts/audit_flood_shp_100y.py"
+      - "scripts/prepare_flood_source_zip.py"
+      - "tests/test_flood_shp_100y.py"
+  workflow_dispatch:
+    inputs:
+      source_zip_url:
+        description: "HTTPS URL for one ZIP containing 20 files (4 national/regional 100-year SHP sets). Blank = self-test only."
+        type: string
+        required: false
+        default: ""
+      source_zip_sha256:
+        description: "Required exact SHA256 checksum of the input ZIP when a URL is specified"
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  self-test:
+    name: Test flood SHP parser (synthetic data only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run parser regression tests (no third-party packages)
+        run: python -m unittest discover -s tests -p test_flood_shp_100y.py -v
+
+  audit:
+    name: Audit real 100-year flood SHP
+    if: github.event_name == 'workflow_dispatch' && inputs.source_zip_url != ''
+    needs: self-test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate download source and checksum inputs
+        env:
+          SOURCE_URL: ${{ inputs.source_zip_url }}
+          SOURCE_SHA256: ${{ inputs.source_zip_sha256 }}
+        run: |
+          python - <<'PY'
+          import os, re
+          from urllib.parse import urlparse
+          url = os.environ["SOURCE_URL"]
+          digest = os.environ["SOURCE_SHA256"]
+          p = urlparse(url)
+          if p.scheme != "https" or not p.hostname or p.username or p.password:
+              raise SystemExit("Source must be an HTTPS URL without embedded credentials.")
+          if p.hostname in {"localhost", "127.0.0.1", "::1"}:
+              raise SystemExit("Localhost download is not allowed.")
+          if not re.fullmatch(r"[0-9a-fA-F]{64}", digest):
+              raise SystemExit("Provide exact 64-hex-character SHA256 of ZIP.")
+          PY
+      - name: Download source ZIP to runner temp (not committed)
+        env:
+          SOURCE_URL: ${{ inputs.source_zip_url }}
+        run: |
+          curl --fail --location --retry 3 --max-time 240 --proto '=https' --proto-redir '=https' \
+            --silent --show-error "$SOURCE_URL" -o "$RUNNER_TEMP/flood_source_100y.zip"
+          test "$(stat -c %s "$RUNNER_TEMP/flood_source_100y.zip")" -le 1073741824
+      - name: Verify ZIP SHA256
+        env:
+          SOURCE_SHA256: ${{ inputs.source_zip_sha256 }}
+        run: |
+          printf '%s  %s\n' "$SOURCE_SHA256" "$RUNNER_TEMP/flood_source_100y.zip" | sha256sum --check --status
+      - name: Validate archive members and extract 4 source layers
+        run: |
+          python -m scripts.prepare_flood_source_zip \
+            --zip "$RUNNER_TEMP/flood_source_100y.zip" \
+            --output-dir "$RUNNER_TEMP/flood_source_100y"
+      - name: Install optional geometry validation
+        run: python -m pip install "geopandas>=1.0,<2"
+      - name: Inspect original 4 SHP layers and DBF unique values
+        run: |
+          python -m scripts.audit_flood_shp_100y \
+            --input-dir "$RUNNER_TEMP/flood_source_100y" \
+            --output-dir "$RUNNER_TEMP/flood_source_audit_100y"
+      - name: Publish report to Actions job summary
+        if: success()
+        run: cat "$RUNNER_TEMP/flood_source_audit_100y/flood_shp_audit_100y.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload QA reports only (NOT original shapefiles)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flood-shp-100y-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/flood_source_audit_100y/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Confirm original repo inputs are unchanged
+        if: always()
+        run: git diff --exit-code HEAD -- data inputs output
