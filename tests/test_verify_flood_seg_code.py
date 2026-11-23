@@ -5,8 +5,8 @@ import tempfile
 import unittest
 import zipfile
 import geopandas as gpd
-from shapely.geometry import MultiPolygon, box
-from scripts.verify_flood_seg_code import create, get_reference_pngs
+from shapely.geometry import MultiPolygon, Polygon, box
+from scripts.verify_flood_seg_code import create, get_reference_pngs, display_polygon
 
 
 class VisualCodeTests(unittest.TestCase):
@@ -50,6 +50,26 @@ class VisualCodeTests(unittest.TestCase):
         self.assertEqual(list(images), ["NTN_44760"])
         result = create(self.sources, self.root / "viewer", archive)
         self.assertEqual(result["image_keys_found"], ["NTN_44760"])
+
+    def test_valid_source_can_be_repaired_for_display(self):
+        # A tiny invalid slit created by an illustrative reprojection effect.
+        geom = Polygon([(0, 0), (10, 0), (10, 10),
+                        (5, 10), (5, 9.9999), (5, 10), (0, 10)])
+        self.assertFalse(geom.is_valid)
+        drawn, record = display_polygon(geom, stem="synthetic", code="N333")
+        self.assertTrue(drawn.is_valid)
+        self.assertIsNotNone(record)
+        self.assertEqual(record["code"], "N333")
+        self.assertLess(record["repair_relative_area_change"], 0.0001)
+        self.assertFalse(record["original_source_shp_modified"])
+
+    def test_reject_dramatic_display_geometry_change(self):
+        # A bow-tie has near zero net signed area before make_valid;
+        # it cannot safely be accepted without manual review.
+        bowtie = Polygon([(0, 0), (10, 10), (0, 10), (10, 0)])
+        self.assertFalse(bowtie.is_valid)
+        with self.assertRaisesRegex(ValueError, "alters area"):
+            display_polygon(bowtie, stem="synthetic", code="N334")
 
     def test_raises_for_unknown_depth_code(self):
         path = self.sources / "RFM_SGG_NTN_44760_100.shp"
