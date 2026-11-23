@@ -146,6 +146,18 @@ class FloodShapefileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate"):
             unpack_source(duplicates, Path(self.temp.name) / "bad")
 
+    def test_allow_official_png_previews(self) -> None:
+        archive = Path(self.temp.name) / "maps_included.zip"
+        with zipfile.ZipFile(archive, "w") as z:
+            for f in self.folder.iterdir():
+                z.write(f, arcname=f.name)
+            z.writestr("RFM_SGG_NTN_44760_100.png", b"PNG preview not used for QA")
+            z.writestr("previews/RFM_SGG_RGN_44790_100(1).png", b"Second preview")
+        dest = Path(self.temp.name) / "maps_unpacked"
+        found = unpack_source(archive, dest)
+        self.assertEqual(len(found), 20)
+        self.assertFalse(any(p.suffix.lower() == ".png" for p in dest.iterdir()))
+
     def test_reject_extra_files(self) -> None:
         archive = Path(self.temp.name) / "bad.zip"
         with zipfile.ZipFile(archive, "w") as z:
