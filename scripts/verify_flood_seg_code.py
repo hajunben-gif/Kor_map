@@ -22,6 +22,9 @@ import folium
 import geopandas as gpd
 from branca.element import MacroElement, Template
 from shapely.ops import unary_union
+from shapely import make_valid
+from shapely.geometry import Polygon, MultiPolygon, GeometryCollection
+from shapely.validation import explain_validity
 
 CODES = tuple(f"N33{x}" for x in range(5))
 COUNTIES = {"44760": "부여군", "44790": "청양군"}
@@ -86,6 +89,61 @@ def get_reference_pngs(source_zip):
     return result
 
 
+def display_polygon(geom, *, stem: str, code: str):
+    """Repair only the visual copy after reprojection; original SHP untouched.
+
+    Converting a valid EPSG:5186 polygon to WGS84 can introduce tiny
+    self-intersections. make_valid may return nonpolygon line fragments;
+    these have no flood area and should not be drawn as flooded roads.
+    A large area change must stop for manual review, not silently distort
+    the displayed flood polygon.
+    """
+    if geom is None or geom.is_empty:
+        raise ValueError(f"Empty display geometry: {stem} {code}")
+    was_invalid = not geom.is_valid
+    reason = explain_validity(geom) if was_invalid else None
+    before_area = float(geom.area)
+    fixed = make_valid(geom) if was_invalid else geom
+    pieces = []
+    def take_polygons(part):
+        if isinstance(part, Polygon):
+            if not part.is_empty:
+                pieces.append(part)
+        elif isinstance(part, (MultiPolygon, GeometryCollection)):
+            for component in part.geoms:
+                take_polygons(component)
+    take_polygons(fixed)
+    if not pieces:
+        raise ValueError(f"Display geometry lost all polygons: {stem} {code}")
+    polygonal = unary_union(pieces) if len(pieces) > 1 else pieces[0]
+    if polygonal.is_empty or not polygonal.is_valid:
+        raise ValueError(f"Could not fix display polygon: {stem} {code}")
+    after_area = float(polygonal.area)
+    # Relative threshold is evaluated in the same CRS on both sides;
+    # the geometry is used for visual code matching only, not area analysis.
+    relative_change = abs(after_area - before_area) / max(abs(before_area), 1e-20)
+    if relative_change > 1e-4:  # 0.01%
+        raise ValueError(
+            f"Display repair alters area >0.01%: {stem} {code}; "
+            f"relative_change={relative_change:.7g}. Manual review required."
+        )
+    simple = polygonal.simplify(0.00006, preserve_topology=True)
+    if simple.is_empty or not simple.is_valid:
+        # Simplification is optional. Preserve repaired geometry rather than
+        # fail on a visual optimization.
+        simple = polygonal
+    record = None
+    if was_invalid:
+        record = {
+            "stem": stem, "code": code,
+            "reason_after_reprojection": reason,
+            "repair_relative_area_change": round(relative_change, 12),
+            "simplification_bypassed": simple is polygonal,
+            "original_source_shp_modified": False,
+        }
+    return simple, record
+
+
 def create(input_dir: Path, output_dir: Path, source_zip: Path | None = None):
     input_dir = input_dir.resolve(strict=True)
     output_dir = output_dir.resolve()
@@ -96,6 +154,7 @@ def create(input_dir: Path, output_dir: Path, source_zip: Path | None = None):
     images = get_reference_pngs(source_zip)
     layers = {}
     centers = {}
+    display_repairs = []
     for county, county_name in COUNTIES.items():
         for river, river_name in RIVERS.items():
             stem = f"RFM_SGG_{river}_{county}_100"
@@ -121,9 +180,9 @@ def create(input_dir: Path, output_dir: Path, source_zip: Path | None = None):
             record = {}
             for _, row in frame.iterrows():
                 code = row.SEG_CODE
-                geom = row.geometry.simplify(0.00006, preserve_topology=True)
-                if not geom.is_valid:
-                    raise ValueError(f"Invalid simplified geometry: {stem} {code}")
+                geom, repair = display_polygon(row.geometry, stem=stem, code=code)
+                if repair is not None:
+                    display_repairs.append(repair)
                 p = row.geometry.representative_point()
                 centers[name].append({
                     "code": code, "lat": round(p.y, 7), "lon": round(p.x, 7),
@@ -221,6 +280,8 @@ sel.addEventListener('change',show);show();</script></body></html>"""
         "datasets": list(layers),
         "total_code_features": sum(map(len, layers.values())),
         "source_zip_pngs_not_georeferenced": True,
+        "display_reprojection_repairs": display_repairs,
+        "original_source_shp_modified": False,
         "note": "Compare 5 code polygons to official PNG legend manually; do not infer from centrality.",
     }
     (output_dir / "manifest.json").write_text(
