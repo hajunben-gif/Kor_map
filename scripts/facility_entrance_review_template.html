@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>구호시설 차량 진입점 검토</title>
+  <style>
+    body { margin: 0; color: #182331; background: #f6f8fa; font: 15px system-ui, sans-serif; }
+    header { padding: 16px 20px; }
+    h1 { font-size: 22px; margin: 0 0 10px; }
+    label { display: inline-flex; align-items: center; gap: 8px; margin: 0 12px 8px 0; }
+    select, button { font: inherit; padding: 5px; max-width: min(85vw, 420px); }
+    #map { display: block; width: 100%; height: 68vh; background: #edf2f5; cursor: grab; touch-action: none; }
+    #map:active { cursor: grabbing; }
+    #details { margin: 12px 20px; overflow-wrap: anywhere; }
+    p { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>구호시설 차량 진입점 검토</h1>
+    <label>검토 상태 <select id="status"></select></label>
+    <label>시설 <select id="facility"></select></label>
+    <button id="overview" type="button">전체 보기</button>
+    <button id="zoom-in" type="button" aria-label="확대">+</button>
+    <button id="zoom-out" type="button" aria-label="축소">−</button>
+    <p>파란 점선은 추천 후보, 회색 점선은 대체 후보입니다. 주황색은 S0 노드가 없는 도로 투영점과 검토할 OSM 원본 정점입니다. 도로는 회색으로, 진입 후보에서 제외한 도로는 갈색으로 표시합니다.</p>
+  </header>
+  <canvas id="map" aria-label="구호시설과 진입점 후보 지도"></canvas>
+  <section id="details" aria-live="polite"></section>
+  <script id="review-data" type="application/json">__REVIEW_DATA__</script>
+  <script>
+    const data = JSON.parse(document.getElementById('review-data').textContent);
+    const status = document.getElementById('status');
+    const facility = document.getElementById('facility');
+    const details = document.getElementById('details');
+    const canvas = document.getElementById('map');
+    const ctx = canvas.getContext('2d');
+    const styles = {
+      high_confidence_candidate: ['근거가 충분한 후보', '#187259'],
+      needs_review: ['추가 검토 필요', '#8d4f16'],
+      unresolved: ['후보 미확인', '#913052']
+    };
+    const project = (lon, lat) => [lon * Math.PI / 180, Math.asinh(Math.tan(lat * Math.PI / 180))];
+    const origins = data.sites.map(s => project(s.facility_longitude, s.facility_latitude));
+    const roads = data.roads.features.map(f => ({
+      points: f.geometry.coordinates.map(([lon, lat]) => project(lon, lat)),
+      screened: f.properties.screened
+    }));
+    let center = origins[0];
+    let scale = 50000;
+    let visible = [];
+    let selected = null;
+    let drag = null;
+
+    function textNode(tag, text) {
+      const element = document.createElement(tag);
+      element.textContent = text;
+      return element;
+    }
+    function option(select, value, text) {
+      const item = textNode('option', text);
+      item.value = value;
+      select.append(item);
+    }
+    function screen([x, y]) {
+      return [canvas.clientWidth / 2 + (x - center[0]) * scale, canvas.clientHeight / 2 - (y - center[1]) * scale];
+    }
+    function line(points, color, width, dashed = false) {
+      ctx.beginPath();
+      points.forEach((point, i) => i === 0 ? ctx.moveTo(...screen(point)) : ctx.lineTo(...screen(point)));
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash(dashed ? [5, 4] : []);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    function dot(point, color, size, hollow = false) {
+      ctx.beginPath();
+      ctx.arc(...screen(point), size, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      if (hollow) ctx.stroke();
+      else ctx.fill();
+    }
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      if (canvas.width !== Math.round(width * dpr) || canvas.height !== Math.round(height * dpr)) {
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      for (const road of roads) line(road.points, road.screened ? '#925656' : '#657582', 1.4);
+      for (const i of visible) dot(origins[i], styles[data.sites[i].status][1], 5);
+      if (!selected) return;
+      for (const candidate of selected.candidates) {
+        const color = candidate.recommended ? '#1559a4' : '#687580';
+        line([selected.origin, candidate.point], color, candidate.recommended ? 2.6 : 1.5, true);
+        dot(candidate.point, color, 5);
+        const [x, y] = screen(candidate.point);
+        ctx.font = '12px system-ui';
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.strokeText(String(candidate.rank), x + 7, y - 6);
+        ctx.fillStyle = color;
+        ctx.fillText(String(candidate.rank), x + 7, y - 6);
+      }
+      for (const point of selected.removed) dot(point, '#d56a10', 4);
+      if (selected.projection) dot(selected.projection, '#d56a10', 7, true);
+      dot(selected.origin, styles[selected.site.status][1], 6);
+    }
+    function fit(points, maxScale) {
+      if (points.length) {
+        const xs = points.map(p => p[0]);
+        const ys = points.map(p => p[1]);
+        const [left, right, bottom, top] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+        center = [(left + right) / 2, (bottom + top) / 2];
+        scale = Math.min(maxScale, Math.max(1, canvas.clientWidth - 80) / (right - left || 1e-9),
+                        Math.max(1, canvas.clientHeight - 80) / (top - bottom || 1e-9));
+      }
+      draw();
+    }
+    const name = s => `${s.county} ${s.facility_id} · ${s.facility_name}`;
+    function focus(value) {
+      selected = null;
+      if (value === '') {
+        details.textContent = visible.length ? '시설을 선택하면 후보 노드, 거리, 검토 사유를 표시합니다.'
+                                             : '이 검토 상태에 해당하는 시설이 없습니다.';
+        fit(visible.map(i => origins[i]), 250000);
+        return;
+      }
+      const site = data.sites[Number(value)];
+      const candidates = site.candidates.map(c => ({...c, point: project(c.coords[1], c.coords[0])}));
+      const projection = site.projection_missing
+        ? project(site.projection.projection_longitude, site.projection.projection_latitude) : null;
+      const removed = site.removed.map(n => project(n.source_longitude, n.source_latitude));
+      const origin = origins[Number(value)];
+      selected = {site, origin, candidates, projection, removed};
+      details.replaceChildren(textNode('strong', `${name(site)} · ${styles[site.status][0]}`),
+                              textNode('p', site.reasons || '후보의 실제 차량 진입 근거를 확인하세요.'));
+      for (const c of candidates) {
+        const description = `#${c.rank} · 노드 ${c.node} · ${c.distance.toFixed(1)}m · ${c.basis}`;
+        details.append(textNode('p', c.cautions ? `${description} · ${c.cautions}` : description));
+      }
+      if (site.removed.length) {
+        details.append(textNode('p', `S0에 없는 원본 노드 ${site.removed.map(n => n.node).join(', ')}`));
+      }
+      fit([origin, ...candidates.map(c => c.point), ...removed, ...(projection ? [projection] : [])], 16000000);
+    }
+    function renderSites() {
+      facility.replaceChildren();
+      option(facility, '', '시설 선택');
+      visible = [];
+      data.sites.forEach((site, i) => {
+        if (status.value && site.status !== status.value) return;
+        visible.push(i);
+        option(facility, i, name(site));
+      });
+      focus('');
+    }
+    function zoom(factor) {
+      scale = Math.min(50000000, Math.max(1000, scale * factor));
+      draw();
+    }
+    canvas.addEventListener('wheel', event => {
+      event.preventDefault();
+      zoom(event.deltaY < 0 ? 1.25 : 0.8);
+    }, {passive: false});
+    canvas.addEventListener('pointerdown', event => {
+      drag = {x: event.offsetX, y: event.offsetY, moved: false};
+      canvas.setPointerCapture(event.pointerId);
+    });
+    canvas.addEventListener('pointermove', event => {
+      if (!drag) return;
+      const dx = event.offsetX - drag.x;
+      const dy = event.offsetY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+      drag = {x: event.offsetX, y: event.offsetY, moved: true};
+      center = [center[0] - dx / scale, center[1] + dy / scale];
+      draw();
+    });
+    canvas.addEventListener('pointerup', event => {
+      if (drag && !drag.moved) {
+        const index = visible.find(i => {
+          const [x, y] = screen(origins[i]);
+          return Math.hypot(x - event.offsetX, y - event.offsetY) <= 8;
+        });
+        if (index !== undefined) {
+          facility.value = String(index);
+          focus(facility.value);
+        }
+      }
+      drag = null;
+    });
+    canvas.addEventListener('pointercancel', () => { drag = null; });
+    option(status, '', '모든 상태');
+    for (const [code, [label]] of Object.entries(styles)) option(status, code, label);
+    status.addEventListener('change', renderSites);
+    facility.addEventListener('change', () => focus(facility.value));
+    document.getElementById('overview').addEventListener('click', () => {
+      facility.value = '';
+      focus('');
+    });
+    document.getElementById('zoom-in').addEventListener('click', () => zoom(1.25));
+    document.getElementById('zoom-out').addEventListener('click', () => zoom(0.8));
+    window.addEventListener('resize', draw);
+    renderSites();
+  </script>
+</body>
+</html>
