@@ -23,6 +23,8 @@ VIEWER = Path(__file__).with_name('team_share_viewer')
 GITHUB = 'https://github.com/hajunben-gif/Kor_map'
 FLOOD_SOURCE = 'https://www.floodmap.go.kr/natreg/'
 OSM_LICENSE = 'https://www.openstreetmap.org/copyright'
+ONLINE_BASEMAP = dict(provider='OpenFreeMap', style='https://tiles.openfreemap.org/styles/liberty',
+                      terms='https://openfreemap.org/tos/', enabled_on_open=True)
 RIGHTS_ITEMS = {
     'flood_display': ('flood', 'START_HERE.html의 침수 도형', '홍수위험지도 변경 및 팀 배포 허락'),
     'flood_gpkg': ('flood', 'flood_100y_depth_scenarios.gpkg', '홍수위험지도 파생 GeoPackage의 재배포 허락'),
@@ -63,9 +65,10 @@ def distribution_rights(data, path):
 
 
 def render_html(output, data, geometry, show_masks):
-    types, roads, masks, bounds, _ = geometry
+    types, roads, masks, bounds, offline, _ = geometry
     context = json.dumps(dict(sites=data['sites'], stats=data['stats'], roadTypes=types,
-                              bounds=bounds, showMasks=show_masks), ensure_ascii=False,
+                              bounds=bounds, showMasks=show_masks, basemapStyle=ONLINE_BASEMAP['style']),
+                         ensure_ascii=False,
                          separators=(',', ':'), allow_nan=False).replace('<', r'\u003c')
     replacements = {
         'DATA': context,
@@ -73,6 +76,8 @@ def render_html(output, data, geometry, show_masks):
         'LEAFLET_JS': (VIEWER / 'leaflet.js').read_text(encoding='utf-8'),
         'VIEWER_CSS': (VIEWER / 'viewer.css').read_text(encoding='utf-8'),
         'VIEWER_JS': (VIEWER / 'viewer.js').read_text(encoding='utf-8'),
+        'BASEMAP_JS': (VIEWER / 'basemap.js').read_text(encoding='utf-8'),
+        'BASEMAP_OFFLINE': offline,
         **{'ROAD_' + s: roads[s] for s in SCENARIOS},
         **{'MASK_' + s: masks[s] if show_masks else '' for s in ('S1', 'S2')},
     }
@@ -152,7 +157,7 @@ def write_documents(light, data, display, rights):
                         for r in rights.values() if r['included'])
     readme = f"""# 부여·청양 침수 도로망 팀 공유 자료
 
-ZIP을 풀고 `START_HERE.html`을 최신 Edge 또는 Chrome에서 엽니다. 저장된 도로와 시설은 인터넷 연결 없이 표시됩니다. 배경지도를 켜면 EOX Terrain Light 타일을 요청합니다. 이 요청은 선택 사항이며 타일은 ZIP에 포함하지 않습니다. [EOX Maps](https://maps.eox.at/)
+ZIP을 풀고 `START_HERE.html`을 최신 Edge 또는 Chrome에서 더블클릭합니다. OpenFreeMap 일반 배경지도가 기본으로 켜집니다. 연결이나 WebGL에 문제가 생기면 내장 군 경계·지명·주요 도로를 표시합니다. **다시 연결** 버튼으로 재시도할 수 있습니다. 저장된 분석 자료는 인터넷 연결 없이 볼 수 있으며, 온라인 타일은 ZIP에 넣지 않습니다. [OpenFreeMap 이용 조건](https://openfreemap.org/tos/)
 
 ## 파일
 
@@ -160,7 +165,7 @@ ZIP을 풀고 `START_HERE.html`을 최신 Edge 또는 Chrome에서 엽니다. �
 - `data/`의 시설 CSV 4개에는 고정 접속점, 시나리오 상태, 직선 겹침 및 방향별 부분 간선 연결 자료가 있습니다.
 - `charts/`에는 시나리오 비교와 기존 투영 거리 분포 그림이 있습니다.
 - `METHODS_KO.md`에는 연구 방법과 검증 결과가 있습니다.
-- `SHARING.md`에는 출처와 공유 범위가 있습니다. 전체판의 추가 파일 및 제외 자료를 확인할 수 있습니다.
+- `SHARING.md`에는 출처와 공유 범위가 있습니다. 침수 도형은 로컬 지도에 표시되며 ZIP의 지도에는 해당 재배포 근거가 확인되면 포함됩니다.
 
 지도는 구호차량 후보 도로망을 표시합니다. 시설 상태 필터는 도로의 개방 상태를 보여 줍니다. 직선 접속선은 연구용이며 실제 차량 진입 여부는 모두 미확인입니다.
 
@@ -170,6 +175,8 @@ ZIP을 풀고 `START_HERE.html`을 최신 Edge 또는 Chrome에서 엽니다. �
     sharing = f"""# 데이터 출처와 공유 범위
 
 도로 데이터 © OpenStreetMap contributors. Geofabrik 스냅샷 시각은 `{source['data_timestamp']}`입니다. 원본 도로 프로파일과 도로 형상은 ODbL 1.0의 출처 표시 및 해당 재배포 조건을 따릅니다. [OpenStreetMap 라이선스]({OSM_LICENSE})
+
+내장 배경의 군 경계는 기존 OSM 행정경계 검증본을 사용합니다. 주요 도로는 검증된 S0 아티팩트에서 표시용으로 가져오고, 읍·면 등 지명은 원본 노드에 지명 태그와 대응 좌표가 있을 때 표시합니다. 재배포 근거를 확인할 수 있는 독립 수계 레이어는 확보된 입력에 없습니다. 온라인 일반 지도는 OpenFreeMap의 Liberty 스타일이며 OpenMapTiles와 OpenStreetMap 출처를 화면에 표시합니다. [OpenFreeMap 이용 조건](https://openfreemap.org/tos/)
 
 침수 입력 출처는 기후에너지환경부 홍수위험지도 정보시스템의 국가·지방하천 자료입니다. 포털은 출처표시·상업적 이용금지·변경금지 조건을 표시합니다. 가공 자료의 팀 공유에 적용되는 허락 범위를 확인합니다. [홍수위험지도]({FLOOD_SOURCE}) · [공공누리 제4유형](https://www.kogl.or.kr/info/licenseType4.do)
 
@@ -206,6 +213,7 @@ ZIP을 풀고 `START_HERE.html`을 최신 Edge 또는 Chrome에서 엽니다. �
         rejected_final_runs=data['rejected'], source_data_sha256={k:dict(name=data['paths'][k].name, sha256=v)
                                                                 for k,v in sha.items()},
         display=display, display_simplification_m=dict(roads=ROAD_SIMPLIFY_M, flood=MASK_SIMPLIFY_M),
+        online_basemap=ONLINE_BASEMAP,
         display_flood_included=rights['flood_display']['included'], excluded_from_share=omitted,
         distribution_rights=rights,
     ))
@@ -289,6 +297,7 @@ def build(args):
         zip_package(publish / 'Kor_map_team_share_light.zip', light_entries)
         zip_package(publish / 'Kor_map_team_share_full.zip', full_entries, manifest)
         shutil.copyfile(light / 'SHARING.md', publish / 'SHARING.md')
+        shutil.copyfile(light / 'SHARE_METADATA.json', publish / 'SHARE_METADATA.json')
         data['hashes'].unchanged()
         require(not output.exists(), f'Output already exists: {output}')
         publish.rename(output)

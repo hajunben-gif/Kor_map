@@ -5,6 +5,7 @@ from functools import partial
 import gzip
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from io import BytesIO
 import json
 import os
 from pathlib import Path
@@ -43,7 +44,8 @@ def parents_and_traces():
     parents = []
     nodes = []
     for way, y, road_type, tags in (
-        (101, Y, 'residential', '{}'), (102, Y+255, 'secondary', '{"bridge":"yes"}'),
+        (101, Y, 'residential', '{}'),
+        (102, Y+255, 'secondary', '{"bridge":"yes","name":"시험 간선로"}'),
     ):
         u, v = way*2, way*2+1
         coords = [(X,y),(X+1000,y)]
@@ -97,7 +99,7 @@ def inputs(tmp_path, monkeypatch):
                     [dict(geometry=box(X+200,Y-2,X+end,Y+260))])
         write_csv(args.run/f'{PROFILE}_{s.lower()}_edge_trace.csv',traces[s])
     tags = args.road_artifact/'source_node_tags.json'
-    dump(tags,{})
+    dump(tags,{str(nodes[0]['node_id']): {'name:ko': '시험 마을', 'place': 'village'}})
     road_metadata = args.road_artifact/'metadata.json'
 
     by_trace = {s:{p['edge_uid']:[Span.from_row(r) for r in items if r['edge_uid']==p['edge_uid']]
@@ -189,7 +191,7 @@ def inputs(tmp_path, monkeypatch):
     missing.mkdir()
     dump(missing/'facility_access_qa.json',manifest)
     failed = tmp_path/'final-facility-access-20261127'
-    failed.mkdir()
+    shutil.copytree(final,failed)
     dump(failed/'facility_access_qa.json',dict(manifest,status='failed'))
     return args,final
 
@@ -226,14 +228,24 @@ def test_package_selects_matching_input_and_protects_distribution(inputs):
     local = (args.output/'START_HERE.html').read_bytes()
     assert len(json.loads(html_data(local,'data'))['sites'])==146
     assert json.loads(gzip.decompress(base64.b64decode(html_data(local,'mask-S2'))))
+    offline = json.loads(gzip.decompress(base64.b64decode(html_data(local,'offline-basemap'))))
+    assert {(kind,name) for kind,name,_ in offline['labels']} == {
+        ('county','부여군'), ('county','청양군'), ('place','시험 마을'), ('road','시험 간선로'),
+    }
+    assert len(offline['polygons']) >= 2 and len(offline['roads']) == 1
     with ZipFile(args.output/'Kor_map_team_share_light.zip') as light, ZipFile(args.output/'Kor_map_team_share_full.zip') as full:
         assert light.testzip() is None and full.testzip() is None
         assert set(light.namelist()) < set(full.namelist())
         assert all(light.read(n)==full.read(n) for n in light.namelist())
         assert not html_data(light.read('START_HERE.html'),'mask-S2')
+        assert html_data(light.read('START_HERE.html'),'offline-basemap') == html_data(local,'offline-basemap')
         assert 'input/road_profile_artifacts/road_network_profiles.gpkg' in full.namelist()
         assert all(not n.endswith(('flood_100y_depth_scenarios.gpkg','road_scenarios.gpkg','edge_trace.csv','shelters_final_147_verified.csv')) for n in full.namelist())
         meta = json.loads(light.read('SHARE_METADATA.json'))
+        assert meta['online_basemap']['enabled_on_open']
+        assert meta['display']['offline_basemap']['settlement_labels'] == 1
+        assert meta['display']['offline_basemap']['county_boundaries']['buyeo']['sha256']
+        assert (args.output/'SHARE_METADATA.json').read_bytes() == light.read('SHARE_METADATA.json')
         assert meta['final_run']=='final-facility-access-20261124'
         assert [r.split(':',1)[0] for r in meta['rejected_final_runs']] == [
             'final-facility-access-20261127','final-facility-access-20261126','final-facility-access-20261125']
@@ -291,8 +303,23 @@ def test_refuses_altered_fixed_coordinate_even_if_output_hash_updated(inputs):
     assert not args.output.exists()
 
 
-@pytest.mark.skipif(not os.getenv('TEAM_SHARE_CHROMIUM'), reason='Set TEAM_SHARE_CHROMIUM for browser verification')
-def test_chromium_interactive_map(inputs):
+def test_lists_missing_analysis_and_manual_review_files_before_writing(inputs):
+    args,_ = inputs
+    args.manual_review = args.projection_dir/'missing_manual_review.csv'
+    projection = args.projection_dir/PROJECTION_FILES['projection_summary']
+    projection.unlink()
+    with pytest.raises(ValueError,match='Missing required input files') as exc:
+        build(args)
+    assert str(projection.resolve()) in str(exc.value)
+    assert str(args.manual_review.resolve()) in str(exc.value)
+    assert not args.output.exists()
+
+
+@pytest.fixture
+def browser_map(inputs):
+    chromium = os.getenv('TEAM_SHARE_CHROMIUM')
+    if not chromium:
+        pytest.skip('Set TEAM_SHARE_CHROMIUM for browser verification')
     playwright = pytest.importorskip('playwright.sync_api')
     args,_ = inputs
     build(args)
@@ -301,66 +328,213 @@ def test_chromium_interactive_map(inputs):
     Thread(target=server.serve_forever, daemon=True).start()
     try:
         with playwright.sync_playwright() as session:
-            browser = session.chromium.launch(executable_path=os.environ['TEAM_SHARE_CHROMIUM'],
-                                              args=['--no-sandbox','--disable-dev-shm-usage'])
-            page = browser.new_page(viewport={'width':1440,'height':940})
-            errors, external = [], []
-            page.on('pageerror',lambda e:errors.append(str(e)))
-            page.route('https://**/*', lambda route:(external.append(route.request.url),route.abort()))
-            page.goto(f'http://127.0.0.1:{server.server_port}/START_HERE.html',wait_until='domcontentloaded')
-            expect = playwright.expect
-            expect(page.locator('#facility-list button')).to_have_count(146)
-            expect(page.locator('#stat-open')).to_have_text('146')
-            page.wait_for_function('geometry !== null')
-            assert not external
-            page.locator('[data-scenario=S1]').click()
-            page.wait_for_function("geometry !== null && geometry.paths[2].length === 1 && geometry.polygons.length === 1")
-            expect(page.locator('#stat-blocked')).to_have_text('16')
-            assert page.evaluate("roadColors") == ['#127349','#b16117','#bd3239']
-            # The intersecting viewport must actually contain each road state color.
-            page.evaluate("""() => {
-                window.canvasContainsRoadColor = (r,g,b) => {
-                    const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-                    for (let i=0; i<pixels.length; i+=4) {
-                        if (pixels[i+3] > 175 && Math.abs(pixels[i]-r) <= 4
-                            && Math.abs(pixels[i+1]-g) <= 4 && Math.abs(pixels[i+2]-b) <= 4) return true;
-                    }
-                    return false;
-                };
-            }""")
-            page.wait_for_function('canvasContainsRoadColor(18,115,73) && canvasContainsRoadColor(177,97,23) && canvasContainsRoadColor(189,50,57)')
-            page.locator('[data-scenario=S2]').click()
-            page.wait_for_function('geometry !== null')
-            expect(page.locator('#stat-open')).to_have_text('128')
-            expect(page.locator('#stat-blocked')).to_have_text('18')
-            page.locator('#facility-state').select_option('blocked')
-            expect(page.locator('#facility-list button')).to_have_count(18)
-            page.locator('#search').fill('검증 시설 18')
-            expect(page.locator('#facility-list button')).to_have_count(1)
-            page.evaluate("markers.getLayers()[0].fire('click')")
-            expect(page.locator('#details')).to_contain_text('검증 시설 18')
-            expect(page.locator('#details')).to_contain_text('미확인 (unverified)')
-            expect(page.locator('#details')).to_contain_text('차단')
-            page.locator('#layer-facility').uncheck()
-            assert page.evaluate('markers.getLayers().length')==1
-            page.locator('#layer-access').uncheck()
-            page.locator('#layer-connector').uncheck()
-            assert page.evaluate('markers.getLayers().length + connectors.getLayers().length')==0
-            page.locator('#county').select_option('청양군')
-            expect(page.locator('#facility-list button')).to_have_count(0)
-            page.locator('#road-type').select_option(label='secondary')
-            page.wait_for_function('!canvasContainsRoadColor(189,50,57) && canvasContainsRoadColor(177,97,23)')
-            page.locator('#layer-1').uncheck()
-            page.wait_for_function('!canvasContainsRoadColor(177,97,23)')
-            page.locator('#layer-flood').uncheck()
-            zoom = page.evaluate('map.getZoom()')
-            page.locator('.leaflet-control-zoom-in').click()
-            assert page.evaluate('map.getZoom()') > zoom
-            page.locator('#extent').click()
-            page.locator('#basemap').click()
-            expect(page.locator('#map-message')).to_contain_text('불러올 수 없습니다')
-            assert external and all('tiles.maps.eox.at' in u for u in external)
-            assert not errors
-            browser.close()
+            with session.chromium.launch(executable_path=chromium, args=['--disable-dev-shm-usage']) as browser:
+                page = browser.new_page(viewport={'width':1440,'height':940})
+                errors = []
+                page.on('pageerror',lambda e:errors.append(str(e)))
+                yield page, f'http://127.0.0.1:{server.server_port}/START_HERE.html', playwright.expect
+                assert not errors
     finally:
         server.shutdown()
+        server.server_close()
+
+
+def test_chromium_interactive_map_with_all_external_requests_blocked(browser_map):
+    page, url, expect = browser_map
+    external = []
+    page.route('https://**/*', lambda route:(external.append(route.request.url),route.abort()))
+    page.goto(url,wait_until='domcontentloaded')
+    expect(page.locator('#basemap')).to_have_attribute('data-mode','offline')
+    expect(page.locator('#offline-legend')).to_be_visible()
+    page.wait_for_function('offlineGeometry?.polygons.length >= 2')
+    assert external and all('cdn.jsdelivr.net' in u for u in external)
+    attempts = len(external)
+    # County shapes are visible without external data when the map is over a saved county.
+    page.evaluate('map.setView([36.28,126.91], 12)')
+    page.wait_for_function("""() => {
+        const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+        for (let i=0; i<pixels.length; i+=4) {
+            if (pixels[i] === 237 && pixels[i+1] === 241 && pixels[i+2] === 231 && pixels[i+3] === 255) return true;
+        }
+        return false;
+    }""")
+    page.locator('#extent').click()
+    expect(page.locator('#facility-list button')).to_have_count(146)
+    expect(page.locator('#stat-open')).to_have_text('146')
+    page.wait_for_function('geometry !== null')
+    page.locator('[data-scenario=S1]').click()
+    page.wait_for_function("geometry !== null && geometry.paths[2].length === 1 && geometry.polygons.length === 1")
+    expect(page.locator('#stat-blocked')).to_have_text('16')
+    assert page.evaluate("roadColors") == ['#127349','#b16117','#bd3239']
+    # The intersecting viewport must actually contain each road state color.
+    page.evaluate("""() => {
+        window.canvasContainsRoadColor = (r,g,b) => {
+            const pixels = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+            for (let i=0; i<pixels.length; i+=4) {
+                if (pixels[i+3] > 175 && Math.abs(pixels[i]-r) <= 4
+                    && Math.abs(pixels[i+1]-g) <= 4 && Math.abs(pixels[i+2]-b) <= 4) return true;
+            }
+            return false;
+        };
+    }""")
+    page.wait_for_function('''(canvasContainsRoadColor(18,115,73) || canvasContainsRoadColor(44,123,88))
+        && canvasContainsRoadColor(177,97,23) && canvasContainsRoadColor(189,50,57)''')
+    page.locator('[data-scenario=S2]').click()
+    page.wait_for_function('geometry !== null')
+    expect(page.locator('#stat-open')).to_have_text('128')
+    expect(page.locator('#stat-blocked')).to_have_text('18')
+    page.locator('#facility-state').select_option('blocked')
+    expect(page.locator('#facility-list button')).to_have_count(18)
+    page.locator('#search').fill('검증 시설 18')
+    expect(page.locator('#facility-list button')).to_have_count(1)
+    page.evaluate("markers.getLayers()[0].fire('click')")
+    expect(page.locator('#details')).to_contain_text('검증 시설 18')
+    expect(page.locator('#details')).to_contain_text('미확인 (unverified)')
+    expect(page.locator('#details')).to_contain_text('차단')
+    page.locator('#layer-facility').uncheck()
+    assert page.evaluate('markers.getLayers().length')==1
+    page.locator('#layer-access').uncheck()
+    page.locator('#layer-connector').uncheck()
+    assert page.evaluate('markers.getLayers().length + connectors.getLayers().length')==0
+    page.locator('#county').select_option('청양군')
+    expect(page.locator('#facility-list button')).to_have_count(0)
+    page.locator('#road-type').select_option(label='secondary')
+    page.wait_for_function('!canvasContainsRoadColor(189,50,57) && canvasContainsRoadColor(177,97,23)')
+    page.locator('#layer-1').uncheck()
+    page.wait_for_function('!canvasContainsRoadColor(177,97,23)')
+    page.locator('#layer-flood').uncheck()
+    zoom = page.evaluate('map.getZoom()')
+    page.locator('.leaflet-control-zoom-in').click()
+    assert page.evaluate('map.getZoom()') > zoom
+    page.locator('#extent').click()
+    assert len(external) == attempts
+
+
+@pytest.fixture
+def simulated_map_service(browser_map):
+    """Serve deterministic tiles through Playwright while running the real MapLibre release."""
+    assets_dir = os.getenv('TEAM_SHARE_MAPLIBRE_ASSETS')
+    if not assets_dir:
+        pytest.skip('Set TEAM_SHARE_MAPLIBRE_ASSETS for MapLibre browser verification')
+    from PIL import Image
+
+    page, url, expect = browser_map
+    state = dict(fault=None, tiles=[], style_requests=0, vector=False)
+    tile_color = (173, 198, 225)
+    responses = {}
+    for name, color in [('tile', tile_color), ('error', (248, 0, 151))]:
+        buffer = BytesIO()
+        Image.new('RGB', (256,256), color).save(buffer, format='PNG')
+        responses[name] = buffer.getvalue()
+    base = 'https://tiles.openfreemap.org'
+    raster = dict(version=8, sources={'tiles':dict(type='raster', tileSize=256, maxzoom=18,
+                                                  tiles=[base+'/test/{z}/{x}/{y}.png'])},
+                  layers=[dict(id='reference', type='raster', source='tiles')])
+    vector = dict(version=8, sources={'tiles':dict(type='vector', maxzoom=18,
+                                                  tiles=[base+'/test/{z}/{x}/{y}.pbf'])},
+                  layers=[{'id':'reference', 'type':'fill', 'source':'tiles', 'source-layer':'area',
+                           'paint':{'fill-color':'#adc6e1'}}])
+    # One synthetic MVT polygon fills its tile. Exercise the vector worker request path.
+    geometry = bytes.fromhex('09 00 00 1a 80 40 00 00 80 40 ff 3f 00 0f')
+    feature = b'\x18\x03\x22' + bytes([len(geometry)]) + geometry
+    layer = b'\x78\x02\x0a\x04area\x12' + bytes([len(feature)]) + feature + b'\x28\x80\x20'
+    pbf = b'\x1a' + bytes([len(layer)]) + layer
+    cors = {'access-control-allow-origin':'*'}
+    assets = {
+        name: (Path(assets_dir)/name).read_bytes() for name in ('maplibre-gl.js','maplibre-gl.css')
+    }
+
+    def handle(route):
+        address = route.request.url
+        if address.startswith('https://cdn.jsdelivr.net/'):
+            name = address.rsplit('/',1)[1]
+            kind = 'text/css' if name.endswith('.css') else 'text/javascript'
+            route.fulfill(content_type=kind, headers=cors, body=assets[name])
+        elif address == base+'/styles/liberty':
+            state['style_requests'] += 1
+            route.fulfill(content_type='application/json', headers=cors,
+                          body=json.dumps(vector if state['vector'] else raster))
+        elif address.startswith(base+'/test/'):
+            fault = state['fault']
+            if fault == 'partial':
+                fault = 403 if len(state['tiles']) == 2 else None
+            state['tiles'].append(fault)
+            if fault == 'abort':
+                route.abort('internetdisconnected')
+            elif address.endswith('.pbf') and not fault:
+                route.fulfill(content_type='application/vnd.mapbox-vector-tile', headers=cors, body=pbf)
+            else:
+                route.fulfill(status=fault or 200, content_type='image/png', headers=cors,
+                              body=responses['error' if fault else 'tile'])
+        else:
+            route.abort()
+
+    page.route('https://**/*', handle)
+    return page, url, expect, state, tile_color
+
+
+def test_default_maplibre_basemap_renders_below_analysis_and_can_be_hidden(simulated_map_service):
+    from PIL import Image
+
+    page, url, expect, state, tile_color = simulated_map_service
+    state['vector'] = True
+    page.goto(url, wait_until='domcontentloaded')
+    expect(page.locator('#basemap')).to_have_attribute('data-mode','online')
+    expect(page.locator('#offline-legend')).to_be_hidden()
+    expect(page.locator('.leaflet-control-attribution')).to_contain_text('© OpenMapTiles')
+    assert state['style_requests'] == 1 and state['tiles']
+    screenshot = Image.open(BytesIO(page.locator('#map').screenshot())).convert('RGB')
+    palette = screenshot.getcolors(screenshot.width*screenshot.height)
+    assert any(color == tile_color and count > 10000 for count,color in palette)
+    assert page.evaluate("Number(mapLayer.style.zIndex) > Number(map.getPane('onlineBasemap').style.zIndex)")
+    page.locator('[data-scenario=S1]').click()
+    page.wait_for_function('geometry?.polygons.length === 1')
+    assert page.evaluate('markers.getLayers().length + connectors.getLayers().length') == 438
+    expect(page.locator('#stat-blocked')).to_have_text('16')
+    initial_zoom = page.evaluate('map.getZoom()')
+    page.locator('.leaflet-control-zoom-in').click()
+    assert page.evaluate('map.getZoom()') == initial_zoom + 1
+    initial_center = page.evaluate('map.getCenter().lng')
+    page.evaluate('map.panBy([180,60], {animate:false})')
+    assert page.evaluate('map.getCenter().lng') > initial_center
+    page.locator('#search').fill('검증 시설 1')
+    page.locator('#facility-list button').first.click()
+    expect(page.locator('#details')).to_contain_text('검증 시설 1')
+    page.locator('#layer-flood').uncheck()
+    expect(page.locator('#basemap')).to_have_attribute('data-mode','online')
+    page.locator('#basemap').click()
+    expect(page.locator('#basemap')).to_have_attribute('data-mode','hidden')
+    expect(page.locator('.maplibregl-canvas')).to_have_count(0)
+    expect(page.locator('#offline-legend')).to_be_hidden()
+    expect(page.locator('#stat-blocked')).to_have_text('16')
+
+
+@pytest.mark.parametrize('fault,message', [
+    (403,'HTTP 403'), (429,'HTTP 429'), ('abort','연결에 실패'), ('partial','HTTP 403'),
+])
+def test_basemap_tile_errors_stop_requests_and_allow_manual_retry(simulated_map_service, fault, message):
+    page, url, expect, state, _ = simulated_map_service
+    state['fault'] = fault
+    page.goto(url, wait_until='domcontentloaded')
+    expect(page.locator('#basemap')).to_have_attribute('data-mode','offline')
+    expect(page.locator('#basemap')).to_have_attribute('aria-pressed','false')
+    expect(page.locator('#basemap-status')).to_contain_text(message)
+    expect(page.locator('.maplibregl-canvas')).to_have_count(0)
+    expect(page.locator('#offline-legend')).to_be_visible()
+    if fault == 'partial':
+        assert state['tiles'][:3] == [None, None, 403]
+    requests = len(state['tiles'])
+    assert requests > 0
+    page.evaluate('map.panBy([200,100], {animate:false})')
+    page.locator('[data-scenario=S2]').click()
+    page.wait_for_function('geometry?.polygons.length === 1')
+    expect(page.locator('#stat-open')).to_have_text('128')
+    expect(page.locator('#stat-blocked')).to_have_text('18')
+    page.wait_for_timeout(350)
+    assert len(state['tiles']) == requests and state['style_requests'] == 1
+    state['fault'] = None
+    page.locator('#basemap').click()
+    expect(page.locator('#basemap')).to_have_attribute('data-mode','online')
+    expect(page.locator('#offline-legend')).to_be_hidden()
+    expect(page.locator('#stat-blocked')).to_have_text('18')
+    assert len(state['tiles']) > requests and state['style_requests'] == 2

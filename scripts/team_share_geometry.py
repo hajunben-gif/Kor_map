@@ -3,6 +3,7 @@
 import base64
 import gzip
 import json
+from pathlib import Path
 
 import geopandas as gpd
 from pyproj import Transformer
@@ -10,16 +11,23 @@ import shapely
 from shapely.geometry import Point
 from shapely.ops import substring
 
+from scripts.build_integrated_area import BOUNDARIES, METRIC, load_boundary
 from scripts.facility_access_scenarios import (
     PROFILE, S0_LAYER, STATE_RANK, WET_SCENARIOS, Span, check_trace_nesting, read_trace, s0_edges_match,
 )
 from scripts.flood_road_inputs import CRS, PROFILES, layer, require
 from scripts.qa_flood_road_scenarios import SCENARIOS, TOL, normalize, read_saved, unique
+from scripts.team_share_data import read_json
 
 ROAD_SIMPLIFY_M = 1.5
 MASK_SIMPLIFY_M = 10.0
 TO_MAP = Transformer.from_crs(CRS, 3857, always_xy=True)
 TO_METRIC = Transformer.from_crs(4326, CRS, always_xy=True)
+ROOT = Path(__file__).resolve().parents[1]
+COUNTY_QA = Path('output/integrated_area/boundaries_20261113/validation.json')
+COUNTIES = {'buyeo': '부여군', 'cheongyang': '청양군'}
+MAJOR_HIGHWAYS = {'motorway', 'trunk', 'primary', 'secondary', 'tertiary'}
+PLACE_TYPES = {'city', 'town', 'village', 'hamlet', 'suburb'}
 
 
 def packed_json(data):
@@ -30,6 +38,11 @@ def packed_json(data):
 def map_coords(line):
     x, y = TO_MAP.transform(*zip(*line.coords, strict=True), errcheck=True)
     return [round(v, 2) for point in zip(x, y, strict=True) for v in point]
+
+
+def polygon_rings(polygons):
+    return [[map_coords(g.exterior), *(map_coords(r) for r in g.interiors)]
+            for g in shapely.get_parts(polygons)]
 
 
 def physical_pairs(edges, ordinals):
@@ -98,9 +111,69 @@ def flood_shapes(flood):
     for s in WET_SCENARIOS:
         name = f'scenario_{s.lower()}_closure_zone'
         frame = layer(flood, name, CRS, ('Polygon', 'MultiPolygon'))
-        polygons = shapely.get_parts(frame.geometry.simplify(MASK_SIMPLIFY_M, preserve_topology=True).array)
-        result[s] = [[map_coords(g.exterior), *(map_coords(r) for r in g.interiors)] for g in polygons]
+        polygons = frame.geometry.simplify(MASK_SIMPLIFY_M, preserve_topology=True).array
+        result[s] = polygon_rings(polygons)
     return result
+
+
+def offline_context(data, edges, pairs):
+    """Display only the archived OSM boundaries and corroborated reference features."""
+    qa_path = ROOT / COUNTY_QA
+    qa_sha = data['hashes'].record(qa_path)
+    qa = read_json(qa_path)
+    require(qa['status'] == 'validated', 'Expected validated county boundaries for offline display')
+    boundary_sources = {}
+    polygons, labels, roads = [], [], []
+    for slug, name in COUNTIES.items():
+        relative = BOUNDARIES / slug / 'boundary.geojson'
+        path = ROOT / relative
+        source_path = relative.with_name('metadata.json')
+        source_sha = data['hashes'].record(ROOT / source_path)
+        source = read_json(ROOT / source_path)
+        require(source['source'] == 'https://www.openstreetmap.org' and source['license'] == 'ODbL 1.0',
+                f'{name}: county boundary license is not recorded')
+        expected = qa['sources'][slug]['sha256']
+        data['hashes'].record(path, expected)
+        metric, _ = load_boundary(path, name, expected)
+        # Read the previously validated 5179 shape and transform it to the canvas projection.
+        county = gpd.GeoSeries([metric], crs=METRIC).to_crs(CRS).iloc[0]
+        polygons.extend(polygon_rings(county))
+        labels.append(['county', name, map_coords(county.representative_point())])
+        boundary_sources[slug] = dict(path=relative.as_posix(), sha256=expected, license=source['license'],
+                                      metadata_path=source_path.as_posix(), metadata_sha256=source_sha)
+
+    osm_nodes = read_json(data['paths']['node_tags'])
+    place_names = {key: tags.get('name:ko') or tags.get('name')
+                   for key, tags in osm_nodes.items() if tags.get('place') in PLACE_TYPES}
+    road_labels = {}
+    for uid, _ in pairs:
+        row = edges[uid]
+        geom = row['geometry']
+        if place_names:
+            ids = row['source_node_ids'].split(',')
+            if any(i in place_names for i in ids):
+                for key, xy in zip(ids, geom.coords, strict=True):
+                    name = place_names.pop(key, None)
+                    if name:
+                        labels.append(['place', name, map_coords(Point(xy))])
+        if row['highway'] not in MAJOR_HIGHWAYS or geom.length <= 0:
+            continue
+        roads.append(map_coords(geom.simplify(ROAD_SIMPLIFY_M)))
+        tags = json.loads(row['osm_tags'])
+        name = tags.get('name:ko') or tags.get('name') or tags.get('ref')
+        if name and (name not in road_labels or geom.length > road_labels[name].length):
+            road_labels[name] = geom
+    for name, geom in sorted(road_labels.items()):
+        labels.append(['road', name, map_coords(geom.interpolate(.5, normalized=True))])
+    metadata = dict(
+        county_validation=dict(path=COUNTY_QA.as_posix(), sha256=qa_sha),
+        county_boundaries=boundary_sources,
+        major_road_types=sorted(MAJOR_HIGHWAYS), major_road_shapes=len(roads),
+        settlement_labels=sum(label[0] == 'place' for label in labels),
+        major_road_labels=len(road_labels),
+        water_features='no independent, shareable hydrology layer among the archived inputs',
+    )
+    return packed_json(dict(polygons=polygons, labels=labels, roads=roads)), metadata
 
 
 def load_geometry(data):
@@ -156,4 +229,5 @@ def load_geometry(data):
         f_lon, f_lat = (float(site[k]) for k in ('facility_longitude', 'facility_latitude'))
         west, south, east, north = min(west,f_lon,lon), min(south,f_lat,lat), max(east,f_lon,lon), max(north,f_lat,lat)
     masks = {s: packed_json(rows) for s, rows in flood_shapes(paths['flood']).items()}
-    return types, encoded, masks, [[south, west], [north, east]], display
+    offline, display['offline_basemap'] = offline_context(data, edges, pairs)
+    return types, encoded, masks, [[south, west], [north, east]], offline, display

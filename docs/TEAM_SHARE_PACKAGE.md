@@ -1,27 +1,45 @@
 # 팀 공유 패키지 생성
 
-이 기능은 PR #20으로 검증된 Windows 산출물을 읽어 오프라인 HTML 지도와 두 ZIP을 생성한다. 지도의 도로 프로파일은 `relief_vehicle_candidate`이며 비교 CSV에는 전체 프로파일이 들어 있다.
+이 기능은 PR #20으로 검증된 Windows 산출물을 읽어 통합 HTML 지도와 두 ZIP을 생성한다. 일반 배경지도가 기본으로 켜지며, 연결이 끊기면 내장 배경을 표시한다. 지도는 `relief_vehicle_candidate` 도로망을, 비교 CSV는 전체 프로파일을 제공한다.
 
 ## Windows PowerShell
 
-저장소 루트에서 실행한다. 기존 분석의 Python 가상환경을 사용한다. 그림을 생성하려면 해당 가상환경에 Matplotlib가 필요하다.
+기존 분석의 Python 가상환경을 사용한다. 그림 생성에는 Matplotlib가 필요하다.
 
 ```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath 'C:\Users\user\Documents\Kor_map'
 git fetch origin
+if ($LASTEXITCODE -ne 0) { throw 'Git fetch 실패' }
 git switch team-share-visualization
+if ($LASTEXITCODE -ne 0) { throw '팀 공유 브랜치 전환 실패' }
 git pull --ff-only origin team-share-visualization
+if ($LASTEXITCODE -ne 0) { throw '팀 공유 브랜치 업데이트 실패' }
 $python = '.\.venv\Scripts\python.exe'
-& $python -m pip install matplotlib
-if ($LASTEXITCODE -ne 0) { throw 'Matplotlib 설치 실패' }
 
 $run = 'work/flood-road-scenarios-20261124-120849'
 $roadArtifact = 'local_inputs/road_profile_artifacts'
 $facilities = 'local_inputs/shelters_final_147_verified.csv'
-$projection = 'work/facility-projection-review/results'
-$flood = Join-Path ([Environment]::GetFolderPath('Desktop')) 'flood_depth_100y_result/flood_100y_depth_scenarios.gpkg'
+$projection = 'C:\Users\user\Downloads\facility_projection_results-77b1cbb5c8924927944e985ea77da1bb'
+$flood = 'C:\Users\user\Desktop\flood_depth_100y_result\flood_100y_depth_scenarios.gpkg'
+$manual = 'C:\Users\user\Downloads\facility_projection_manual_review.csv'
 $output = "work/team-share-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
-$runHash = (Get-FileHash -LiteralPath (Join-Path $run 'road_scenarios.gpkg') -Algorithm SHA256).Hash
+$gpkg = Join-Path $run 'road_scenarios.gpkg'
+$required = @($python, $gpkg, $facilities, $flood, $manual)
+$required += @('validation.json', 'scenario_comparison.csv',
+    'relief_vehicle_candidate_s1_edge_trace.csv', 'relief_vehicle_candidate_s2_edge_trace.csv') |
+    ForEach-Object { Join-Path $run $_ }
+$required += @('road_network_profiles.gpkg', 'metadata.json', 'source_node_tags.json') |
+    ForEach-Object { Join-Path $roadArtifact $_ }
+$required += @('facility_projection_summary.json', 'facility_projection_distances.csv',
+    'facility_projection_review_queue.csv', 'facility_projection_audit_sample.csv') |
+    ForEach-Object { Join-Path $projection $_ }
+$missing = @($required | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) } |
+    ForEach-Object { $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($_) })
+if ($missing.Count) { throw ("필수 파일 누락" + [Environment]::NewLine + ($missing -join [Environment]::NewLine)) }
+
+$runHash = (Get-FileHash -LiteralPath $gpkg -Algorithm SHA256).Hash
 $roadQA = Get-ChildItem 'work' -Directory -Filter 'flood-road-qa-*' |
     Sort-Object Name -Descending |
     ForEach-Object { Join-Path $_.FullName 'qa.json' } |
@@ -31,28 +49,38 @@ $roadQA = Get-ChildItem 'work' -Directory -Filter 'flood-road-qa-*' |
             $qa.status -eq 'passed' -and $qa.run_gpkg_sha256 -eq $runHash
         }
     } | Select-Object -First 1
-if (-not $roadQA) { throw '도로망 독립 QA의 qa.json 경로를 $roadQA에 지정하세요.' }
+if (-not $roadQA) { throw "일치하는 독립 QA 없음. 확인 경로 $PWD\work\flood-road-qa-*\qa.json" }
 
+& $python -m pip install matplotlib
+if ($LASTEXITCODE -ne 0) { throw 'Matplotlib 설치 실패' }
 & $python -m scripts.build_team_share_package `
     --run $run --road-artifact $roadArtifact --facilities $facilities `
     --flood-gpkg $flood --independent-qa $roadQA --projection-dir $projection `
-    --output $output
+    --manual-review $manual --output $output
 if ($LASTEXITCODE -ne 0) { throw '팀 공유 패키지 생성 실패' }
 Start-Process (Resolve-Path (Join-Path $output 'START_HERE.html')).Path
 ```
 
-`$projection`은 기존 `facility_projection_results.zip`을 푼 폴더에 맞춘다. 다른 곳에 독립 QA를 저장했다면 `$roadQA`에 해당 `qa.json`을 지정한다. 직접 지정한 QA도 SHA-256을 검사한다. `--final-run`을 지정하지 않으면 `$run`과 같은 상위 폴더에서 `final-facility-access-*`를 최신 이름부터 검사한다. `passed` 상태, 4개 CSV 존재 및 해시, 입력 해시, 고정 좌표와 실제 CSV 집계를 모두 통과한 폴더를 선택한다. 특정 폴더를 쓰려면 `--final-run '경로'`를 추가한다. 기준망 출처가 S0 내보내기 사본인 최종 QA는 기존 투영 요약의 S0 사본 해시로 확인한다. 전체 GeoPackage 출처는 현재 시나리오 GeoPackage의 해시로 대조한다.
-
-수동 검토 CSV가 준비돼 있으면 `--manual-review '경로/facility_projection_manual_review.csv'`를 추가해 해당 입력 해시도 확인할 수 있다. 패키지에는 검증된 시설 결과 CSV 4개를 복사한다.
+다른 곳에 독립 QA를 저장했다면 `$roadQA`에 해당 `qa.json`을 지정한다. 빌더는 `$run`과 같은 상위 폴더에서 `final-facility-access-*`를 최신 이름부터 검사한다. `passed` 상태, CSV 4개의 존재 여부와 해시, 수동 검토 CSV를 포함한 입력 해시, 고정 좌표와 실제 CSV 집계를 통과한 폴더를 선택한다. 특정 폴더를 쓰려면 `--final-run '경로'`를 추가한다. S0 내보내기 사본을 사용한 최종 QA는 기존 투영 요약의 사본 해시로, 전체 GeoPackage를 사용한 최종 QA는 현재 시나리오 GeoPackage의 해시로 대조한다. 선택한 폴더와 제외 사유는 `SHARE_METADATA.json`에 기록한다.
 
 ## 지도와 ZIP
 
 - `START_HERE.html`은 전체 로컬 지도다. 최신 Windows Edge 또는 Chrome에서 더블클릭해 연다. Leaflet 1.9.4와 지도 데이터가 파일 안에 들어 있으며, 브라우저의 gzip `DecompressionStream`을 사용한다.
 - `Kor_map_team_share_light.zip`에는 팀 공유용 HTML, README, 시나리오 비교, 시설 결과 CSV 4개, 그래프, 한국어 연구 방법, 출처와 공유 범위가 있다.
 - `Kor_map_team_share_full.zip`에는 경량판의 모든 항목과 원본 도로 프로파일 아티팩트, QA, 재현 안내가 들어 있다. 다른 원본은 아래 재배포 조건에 따라 추가된다. `manifest_sha256.csv`는 매니페스트 자체를 제외한 ZIP 내부 파일별 크기와 SHA-256이다.
-- 생성 폴더의 `SHARING.md`와 ZIP 내부의 동명 문서에서 포함 및 제외 사유를 확인한다. 기존 결과 폴더와 데이터는 입력 SHA-256으로 검증한다.
+- 생성 폴더와 두 ZIP에 `SHARE_METADATA.json`과 `SHARING.md`를 제공한다. 재배포 범위, 입력 SHA-256, 시나리오 통계와 내장 배경 출처를 확인할 수 있다.
 
-배경지도는 끈 상태로 시작한다. 켜면 [EOX Terrain Light](https://maps.eox.at/)의 현재 화면 타일을 요청한다. 화면에 OSM·EOX 출처를 표시하고 타일을 저장하거나 ZIP에 묶지 않는다. 서비스 연결에 실패해도 저장된 도로와 시설을 표시한다. 도로 도형을 시나리오별로 압축하고 처음 고른 시나리오부터 해제한다. 표시용 단순화는 도로 1.5m, 침수 마스크 10m의 EPSG:5186 기준을 적용하고 Canvas로 현재 화면과 겹치는 형상을 그린다. 분석 집계는 기존 QA와 CSV에서 읽는다.
+## 배경지도와 연결 실패
+
+기본 배경은 OpenFreeMap Liberty다. 도로명·지명·하천·건물 등의 위치 정보를 분석 레이어 아래에 표시한다. 인터넷과 WebGL을 사용하며 MapLibre GL JS 5.24.1을 jsDelivr에서 불러온다. OpenFreeMap은 키 없이 공개 스타일을 앱에 삽입할 수 있도록 안내하고 서비스 가용성은 보증하지 않는다. 지도에는 OpenFreeMap, OpenMapTiles, OpenStreetMap 출처를 표시한다. 요청은 브라우저에서 서비스로 직접 전송되며 온라인 타일은 ZIP에 넣지 않는다. [OpenFreeMap 사용법](https://openfreemap.org/quick_start/) · [이용 조건](https://openfreemap.org/tos/)
+
+EOX도 링크와 출처 표시를 조건으로 앱 사용을 안내한다. Terrain Light의 지명과 도로 표시는 별도 레이어를 사용하고, 공개 서비스에는 요청 제한이 있다. 지명과 도로가 기본 스타일에 포함되고 기존 Windows 검증 이력이 있는 OpenFreeMap을 선택했다. [EOX 서비스 안내](https://maps.eox.at/)
+
+이전 HTML은 로컬 파일에서 유효한 Referer 없이 OSM 공개 래스터 서버를 호출해 403 차단 타일이 표시됐다. PR #6은 요청을 중단하고 검증된 군 경계를 내장했다. 후속 PR #8·#9에서 OpenFreeMap을 도입하고 라이브러리 로드 순서를 고쳤다. 이전 뷰어의 Windows Chrome·Edge 성공은 저장소에 기록돼 있다. 이번 버전도 공식 Liberty 스타일을 사용하며, Windows에서 새 HTML의 `file://` 연결은 아래 절차로 확인한다. [이전 뷰어 이력](./VERIFIED_ROAD_NETWORK_HTML.md) · [OSM 공개 래스터 타일 정책](https://operations.osmfoundation.org/policies/tiles/)
+
+HTTP 오류, 타일 실패, 네트워크 단절, WebGL 오류 또는 12초 연결 시간 초과 시 온라인 레이어를 해제한다. 이미 받은 일부 타일도 함께 제거하고 자동 재시도를 중단한다. 상태 줄에 확인 가능한 HTTP 상태나 실패 유형을 표시한다. 브라우저나 네트워크가 교차 출처 요청을 차단하는 경우에도 내장 배경으로 전환한다. 사용자가 **배경지도 다시 연결**을 누르면 새로 연결하고, 성공하면 내장 배경을 숨긴다. **배경지도 끄기**로 온라인 배경을 직접 숨길 수 있다.
+
+내장 배경은 이전 검증본의 부여군·청양군 경계와 군명, S0의 주요 도로와 원본 OSM 이름·도로번호를 사용한다. 지명 태그에 대응하는 원본 노드 좌표가 있을 때 추가 지명을 표시한다. 축척과 범례는 계속 표시된다. 확보된 파일에 배포 가능한 독립 수계 도형이 없어, 하천과 수계는 온라인 지도에서 확인한다. 분석 도형의 시나리오별 지연 로딩과 Canvas 렌더링은 배경지도와 독립적이다. 표시용 단순화는 도로 1.5m, 침수 마스크 10m의 EPSG:5186 기준을 적용한다. 분석 집계는 기존 QA와 CSV에서 읽는다.
 
 ## 재배포 범위
 
@@ -74,6 +102,11 @@ Start-Process (Resolve-Path (Join-Path $output 'START_HERE.html')).Path
 
 ## 확인
 
-해시와 분석 집계는 `SHARE_METADATA.json`에 기록한다. 실데이터 기준은 동일한 접속 위치 146개, S0 개방 146, S1 개방 130·차단 16, S2 개방 128·차단 18이다. 시나리오 버튼, 차단 필터, 도로 유형과 레이어 전환을 Windows Edge 또는 Chrome에서 확인한다. 주요 화면의 수치는 기존 검증값을 사용한다.
+### Windows Edge·Chrome 확인
 
-합성 데이터 테스트는 `python -m pytest -q tests/test_build_team_share_package.py`로 실행한다. Playwright와 Chromium이 설치된 환경에서 `TEAM_SHARE_CHROMIUM`에 Chromium 실행 파일 경로를 지정하면 브라우저 테스트도 실행된다. 실제 Windows 입력과 브라우저 검증은 위 명령으로 별도로 수행한다.
+1. 경량 ZIP을 압축 해제한 뒤 ZIP 내부의 `START_HERE.html`과 빌드 폴더의 동명 파일을 각각 더블클릭한다. 주소창은 `file:///`이며 서버나 브라우저 보안 설정 변경이 필요 없다.
+2. 인터넷 연결 상태에서 OpenFreeMap 출처와 배경지도 위의 도로·시설을 확인한다. 확대·이동, 배경 켜기·끄기, 레이어 전환, 시설 검색과 상세를 확인한다. 침수 도형 확인에는 빌드 폴더의 로컬 HTML을 사용한다.
+3. 각 브라우저에서 연결을 끊고 다시 연다. 내장 군 경계·주요 도로와 축척·범례를 확인하고, 팝업과 분석 레이어를 계속 사용할 수 있는지 확인한다. 연결을 복구하고 **배경지도 다시 연결**을 눌러 일반 지도가 돌아오는지 확인한다.
+4. `SHARE_METADATA.json` 및 대시보드에서 146개 고정 접속점, S0 개방 146, S1 개방 130·차단 16, S2 개방 128·차단 18을 확인한다.
+
+합성 데이터 테스트는 `python -m pytest -q tests/test_build_team_share_package.py`로 실행한다. Playwright가 있는 환경에서 `TEAM_SHARE_CHROMIUM`에 Chromium 실행 파일을 지정하면 외부 요청 차단과 내장 배경을 검증한다. 온라인 렌더링과 오류 주입 테스트에는 공식 npm 패키지 `maplibre-gl@5.24.1`의 `dist/maplibre-gl.js`, `dist/maplibre-gl.css`를 같은 로컬 폴더에 두고 `TEAM_SHARE_MAPLIBRE_ASSETS`에 그 경로를 지정한다. 테스트는 실제 MapLibre로 합성 타일을 렌더링하고 403·429·네트워크 실패·일부 타일 성공을 모의한다. Windows의 공개 서비스 `file://` 확인은 위의 절차로 진행한다.

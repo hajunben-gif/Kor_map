@@ -35,7 +35,9 @@ let geometry = null;
 let serial = 0;
 let frame = 0;
 let mapError = '';
-let tileError = false;
+let offlineVisible = false;
+let offlineSource = null;
+let offlineGeometry = null;
 const cached = new Map();
 const mapLayer = map.createPane('scenarioCanvas');
 mapLayer.style.zIndex = '350';
@@ -45,25 +47,12 @@ mapLayer.append(canvas);
 const ctx = canvas.getContext('2d');
 const connectors = L.layerGroup().addTo(map);
 const markers = L.layerGroup().addTo(map);
-const tile = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/terrain-light_3857/default/g/{z}/{y}/{x}.jpg', {
-  maxZoom:20, maxNativeZoom:14, noWrap:true, keepBuffer:1, updateWhenIdle:true,
-  attribution: '<a href="https://maps.eox.at/" target="_blank" rel="noopener noreferrer">EOX Terrain Light</a> · 데이터 © OpenStreetMap contributors 및 기타 제공자'
-});
 function showMapMessage() {
   const e = get('map-message');
-  const text = mapError || (!geometry ? '시나리오 도형을 불러오는 중입니다.' :
-    tileError ? '온라인 배경지도를 불러올 수 없습니다. 저장된 도로와 시설은 계속 사용할 수 있습니다.' : '');
+  const text = mapError || (!geometry ? '시나리오 도형을 불러오는 중입니다.' : '');
   e.hidden = !text;
   e.textContent = text;
 }
-tile.on('tileerror', () => { tileError = map.hasLayer(tile); showMapMessage(); });
-tile.on('tileload', () => { tileError = false; showMapMessage(); });
-get('basemap').addEventListener('click', () => {
-  const enabled = !map.hasLayer(tile);
-  if (enabled) tile.addTo(map);
-  else { tile.remove(); tileError = false; showMapMessage(); }
-  get('basemap').setAttribute('aria-pressed', String(enabled));
-});
 get('extent').addEventListener('click', fitRegion);
 
 async function decode(id) {
@@ -102,6 +91,63 @@ async function readScenario(name) {
 function schedule() {
   if (!frame) frame = requestAnimationFrame(draw);
 }
+function showOffline(visible) {
+  offlineVisible = visible;
+  get('offline-legend').hidden = !visible;
+  if (visible && !offlineSource) {
+    offlineSource = decode('offline-basemap').then(({polygons,labels,roads}) => {
+      offlineGeometry = {
+        polygons:polygons.map(rings => ({rings, box:extent(rings[0])})),
+        roads:roads.map(coords => ({coords, box:extent(coords)})),
+        labels,
+      };
+      schedule();
+    }).catch(error => {
+      get('offline-legend').hidden = true;
+      console.error('Could not read embedded reference geometry', error);
+    });
+  }
+  schedule();
+}
+
+function drawOffline(append, visible, project) {
+  if (!offlineVisible || !offlineGeometry) return;
+  ctx.save();
+  ctx.fillStyle = '#edf1e7';
+  ctx.strokeStyle = '#6f847e';
+  ctx.lineWidth = 1.3;
+  ctx.setLineDash([5,4]);
+  for (const {rings,box} of offlineGeometry.polygons) {
+    if (!visible(box)) continue;
+    ctx.beginPath();
+    for (const ring of rings) append(ring,true);
+    ctx.fill('evenodd');
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#87988f';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  for (const {coords,box} of offlineGeometry.roads) {
+    if (visible(box)) append(coords);
+  }
+  ctx.stroke();
+  ctx.textAlign = 'center';
+  ctx.strokeStyle = '#f5f7ef';
+  ctx.fillStyle = '#405a53';
+  ctx.lineWidth = 3;
+  for (const [kind,name,coords] of offlineGeometry.labels) {
+    if (kind === 'road' && map.getZoom() < 12) continue;
+    const [x,y] = coords;
+    if (!visible([x,y,x,y])) continue;
+    const pixel = project(x,y);
+    ctx.font = (kind === 'county' ? 'bold 15px' : '12px') + ' "Malgun Gothic", sans-serif';
+    ctx.strokeText(name,...pixel);
+    ctx.fillText(name,...pixel);
+  }
+  ctx.restore();
+}
+
 const HALF_WORLD = Math.PI * 6378137;
 function draw() {
   frame = 0;
@@ -115,7 +161,6 @@ function draw() {
   L.DomUtil.setPosition(canvas, origin);
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,size.x,size.y);
-  if (!geometry) return;
 
   const scale = map.options.crs.scale(map.getZoom()) / (2 * HALF_WORLD);
   const pixel = map.getPixelOrigin().add(origin);
@@ -128,6 +173,8 @@ function draw() {
     for (let i = 2; i < coords.length; i += 2) ctx.lineTo(coords[i]*scale+xShift, yShift-coords[i+1]*scale);
     if (close) ctx.closePath();
   }
+  drawOffline(append, visible, (x,y) => [x*scale+xShift, yShift-y*scale]);
+  if (!geometry) return;
   if (checked('layer-flood')) {
     ctx.fillStyle = 'rgba(66,154,209,.25)'; ctx.strokeStyle = 'rgba(26,112,166,.55)'; ctx.lineWidth = 0.7;
     for (const {rings,box} of geometry.polygons) {
@@ -289,3 +336,4 @@ for (const id of ['county','facility-state','layer-facility','layer-access','lay
 }
 get('search').addEventListener('input', renderFacilities);
 selectScenario('S0');
+attachOnlineBasemap(map, get('basemap'), get('basemap-status'), data.basemapStyle, showOffline);

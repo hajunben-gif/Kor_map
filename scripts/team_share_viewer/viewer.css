@@ -59,7 +59,9 @@ button[aria-pressed=true] { background: #d9f0ef; color: #00555b; border-color: #
 .map-head div { display: flex; gap: 5px; }
 .map-frame { position: relative; }
 #map { height: clamp(390px, 67vh, 880px); background: #e6ecea; }
+.online-map { position: absolute; overflow: hidden; }
 .study-canvas { position: absolute; pointer-events: none; }
+#basemap-status { padding: 4px 10px; background: #f2f7f7; color: #405d66; font-size: 12px; }
 #map-message { position: absolute; z-index: 600; top: 8px; right: 8px; max-width: 75%;
                padding: 6px 9px; border-radius: 5px; color: #184049; background: #f0faf9; font-size: 12px; }
 .legend { display: flex; flex-wrap: wrap; gap: 7px 11px; padding: 8px 10px; border-top: 1px solid var(--line); }
@@ -72,6 +74,8 @@ button[aria-pressed=true] { background: #d9f0ef; color: #00555b; border-color: #
 .site { width: 9px; height: 9px; background: #31566e; border-radius: 50%; }
 .access { width: 9px; height: 9px; border: 2px solid #31566e; border-radius: 50%; }
 .connector { width: 15px; border-top: 2px dashed #31566e; }
+.county-line { width: 15px; border-top: 2px dashed #6f847e; }
+.major-road { width: 15px; border-top: 2px solid #87988f; margin-left: 5px; }
 .side { display: grid; gap: 10px; }
 .type-label { display: block; margin-top: 7px; }
 .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 7px; margin-top: 9px; }

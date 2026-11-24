@@ -47,9 +47,10 @@
   <section class="panel map-panel" aria-label="통합 지도">
     <div class="map-head">
       <h2 id="map-name">S0 기준망</h2>
-      <div><button id="basemap" type="button" aria-pressed="false">배경지도</button>
+      <div><button id="basemap" type="button" aria-pressed="true">연결 취소</button>
         <button id="extent" type="button">전체 지역</button></div>
     </div>
+    <p id="basemap-status" role="status" hidden></p>
     <div class="map-frame">
       <div id="map" aria-label="침수구역, 도로망 및 시설 위치"></div>
       <p id="map-message" role="status" hidden></p>
@@ -62,6 +63,7 @@
       <span><i class="site"></i>대표점</span>
       <span><i class="access"></i>접속점</span>
       <span><i class="connector"></i>연구용 직선</span>
+      <span id="offline-legend" hidden><i class="county-line"></i>군 경계 <i class="major-road"></i>주요 도로</span>
     </div>
   </section>
   <aside class="side">
@@ -94,7 +96,10 @@
 <script type="application/octet-stream" id="roads-S2">@@ROAD_S2@@</script>
 <script type="application/octet-stream" id="mask-S1">@@MASK_S1@@</script>
 <script type="application/octet-stream" id="mask-S2">@@MASK_S2@@</script>
+<script type="application/octet-stream" id="offline-basemap">@@BASEMAP_OFFLINE@@</script>
 <script>@@LEAFLET_JS@@
+</script>
+<script>@@BASEMAP_JS@@
 </script>
 <script>@@VIEWER_JS@@
 </script>

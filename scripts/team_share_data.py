@@ -48,6 +48,11 @@ def read_json(path):
     return json.loads(path.read_bytes())
 
 
+def check_input_files(paths):
+    missing = [str(path.resolve()) for path in paths if not path.is_file()]
+    require(not missing, 'Missing required input files:\n' + '\n'.join(missing))
+
+
 def index_rows(rows, *fields):
     result = {tuple(r[k] for k in fields): r for r in rows}
     require(len(result) == len(rows), f'Duplicate CSV key: {fields}')
@@ -56,6 +61,7 @@ def index_rows(rows, *fields):
 
 def read_final(path, hashes, expected_inputs, projection_export_hash):
     qa_path = path / 'facility_access_qa.json'
+    check_input_files([qa_path, *(path / name for name in FINAL_FILES)])
     hashes.record(qa_path)
     qa = read_json(qa_path)
     require(qa['status'] == 'passed' and qa['profile'] == PROFILE and qa['analysis_crs'] == f'EPSG:{CRS}',
@@ -87,7 +93,8 @@ def select_final(args, hashes, expected_inputs, projection_export_hash, verify_f
             return path, qa, sites, totals, rejected
         except (OSError, ValueError, KeyError, TypeError) as exc:
             rejected.append(f'{path.name}: {exc}')
-    raise ValueError('No matching passed final-facility-access run. ' + ' | '.join(rejected))
+    raise ValueError(f'No matching passed final-facility-access run in {args.run.parent.resolve()}. '
+                     + ' | '.join(rejected))
 
 
 def validate_roads(path, manifest, independent):
@@ -232,6 +239,7 @@ def load_verified_inputs(args):
                  **{k: args.projection_dir / n for k, n in PROJECTION_FILES.items()})
     if args.manual_review:
         paths['manual'] = args.manual_review
+    check_input_files(paths.values())
     digests = {k: hashes.record(path) for k, path in paths.items()}
     manifest = read_json(validation)
     qa = read_json(args.independent_qa)
