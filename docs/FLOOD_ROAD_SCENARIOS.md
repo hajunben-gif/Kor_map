@@ -150,3 +150,57 @@ if ($LASTEXITCODE -ne 0) { throw '고정 진입점 OD 생성 또는 검증 실�
 ```
 
 현재 Windows 실행의 보고된 `passed`는 최초 분석의 검증 결과다. 입지 최적화용 입력으로 승인하려면 해당 Windows 폴더에서 독립 QA와 고정 진입점 OD 검증을 통과하고, 사용할 구호차량과 통행·차량 진입 가정을 확인해야 한다. 이 단계에서는 입지 최적화를 실행하지 않는다.
+
+## 시설 차량 진입점 후보와 검토 자료
+
+이 단계는 기존 Windows 실행 폴더의 `road_scenarios.gpkg`에서 `relief_vehicle_candidate_s0_nodes`와 `relief_vehicle_candidate_s0_edges`만 읽는다. 기존 `validation.json`, 독립 QA의 `qa.json`, Windows 분석에 사용한 `local_inputs/shelters_final_147_verified.csv`의 해시를 대조한다. 침수 도형 처리나 OD 계산은 수행하지 않는다. 선택 사항인 `source_node_tags.json`은 원본 도로 프로필 아티팩트의 `metadata.json`에 기록된 해시로 확인한다. 두 파일을 생략하면 S0에 내장된 도로 태그와 원본 노드 ID는 조사할 수 있으며, 노드 단위 진입·차단기 태그는 확인할 수 없다.
+
+### 후보 선정
+
+1. EPSG:5186에서 시설 대표점과 가장 가까운 S0 도로 형상, 그 도로 위 투영점, 150m 안의 S0 원본 노드를 공간 인덱스로 조회한다. 양방향 형상은 OSM way와 방향을 제거한 형상으로 중복을 줄인다. 최단거리가 같은 서로 다른 way는 동률로 표시한다. 150m는 검토자가 인접 필지와 주변 도로의 대안을 볼 수 있게 둔 검색 범위다. 시설 대표점과 실제 진입로가 멀면 범위 밖에 있을 수 있다.
+2. 후보별로 연결된 방향 간선과 도로 분류·OSM 태그, 원래 S0 유입·유출 차수 및 WCC·SCC를 기록한다. 검토용 연결성 계산에서는 motorway·trunk 및 연결로, 교량·고가, 명시적 차량 제한 또는 차단기 근거가 있는 방향 간선을 제외한다. 모호한 목적·조건부 허용, 표면이나 차량 제원 제한, 일방통행 등의 태그는 주의사항으로 남긴다. 간선 위 원본 노드에 표시된 제한도 반영한다. 원본 S0의 가장 큰 SCC 안에서 이 기준을 적용한 가장 큰 SCC를 공통 왕복 기준으로 사용한다.
+3. 접근성 기준을 통과한 연결 도로가 있는 후보와 이 공통 기준으로 왕복하는 후보를 우선한다. 다음 순서는 차량 허용 태그가 있는 OSM 진입 노드와 연결 driveway가 모두 있는 경우, 차량 허용 태그가 있는 진입 노드, driveway, 기타 entrance 또는 service, 일반 S0 노드다. 같은 순위에서는 직선거리와 OSM 노드 ID로 결정하며 시설당 최대 5개를 출력한다. 연결 도로가 모두 제외된 노드는 검토 후보 행에 남을 수 있으며 추천 대상에서는 제외한다.
+4. 최상위 태그 근거를 갖추고 25m 이내이며 접근·방향·연결성 주의사항이나 경쟁 근거가 없으면 `high_confidence_candidate`를 부여한다. 25m는 주소 대표점 주변에 강한 지도 근거가 함께 있는 경우를 우선 검토하기 위한 범위다. 추천 후보 거리보다 15m 더 먼 범위까지 비슷한 근거가 있으면 경쟁 근거로 취급한다. 15m는 대표점 위치의 작은 차이로 후보가 바뀔 수 있는 경우를 검토 대상으로 남기기 위한 여유다. 검색 범위 안에 추천 가능한 노드는 있으나 이 기준이 부족하면 `needs_review`, 추천 가능한 노드가 없으면 `unresolved`다. 거리 기준은 현장 데이터로 보정한 정확도나 확률이 아니다.
+5. 최근접 도로의 투영점이 간선 중간이면 `projection_without_s0_node`로 기록한다. 투영점 5m 안에서 동일 간선의 생략된 원본 정점을 표시하고, 시설 150m 안에 생략된 `entrance` 태그 정점이 있으면 별도 검토 사유를 추가한다. 5m는 투영점 근처의 원본 정점을 함께 보여 주는 검토 범위다. 투영점은 기하학적 추정이며, 건물 진입 태그는 보행용일 수 있다. 누락 정점·중간 투영점이 실제 차량 진입점으로 확인되면 해당 원본 way와 방향의 대응을 기록하고 별도의 검증된 라우팅 입력에서 연결점을 마련한다. 하나의 동일 평면 도로에 연결해야 하며, 방향별 분할과 시나리오 차단 구간 상속 및 가상 회전 방지를 다시 검증한다. 원본 S0와 기존 분석 결과는 그대로 보관한다.
+
+모든 자동 결과는 검토 우선순위다. 입구가 다른 필지나 건물을 가리키는지, 차로 방향과 회전이 맞는지, 사유지 허가·문·차단기·차폭·차고·하중이 해당 차량에 맞는지는 지도, 기관 정보 또는 현장으로 확인한다. OSM에서 누락된 진입로, 후보 프로필에서 제외된 도로, 원래 OSM 회전 제한이나 현장 통제를 이 도구로 확정할 수 없다. 대응하는 S0 노드와 실제 차량 진입 근거를 확인한 시설만 별도 완성본 양식에 노드 ID와 근거를 적고 `verified`로 바꾼다.
+
+| 파일 | 내용 |
+|---|---|
+| `facility_entrance_candidates.csv` | 후보별 순위·좌표·거리·연결성·태그·선정 근거·주의사항 |
+| `facility_entrance_review.csv` | 시설별 추천과 대체 노드, 검토 상태·사유, 최근접 도로 및 누락 정점 단서 |
+| `facility_entrance_review.html` | 외부 지도 서비스가 필요 없는 검토 지도. 상태를 필터링하고 시설을 선택하면 후보·누락 단서와 주변 S0 도로가 표시된다. |
+| `facility_entrances_template.csv` | 기존 OD 입력 형식의 146개 행. 모든 행은 `unverified`로 시작하며 진입점 ID를 비워 둔다. |
+| `entrance_candidate_qa.json` | 입력·출력 해시, 누락·중복·S0 노드 검증, 상태별 건수와 거리 분포, 추가 검토 목록 및 기준 |
+
+### Windows PowerShell
+
+저장소 루트의 PR 브랜치에서 실행한다. 아래 명령은 독립 QA 출력 폴더 중 같은 GeoPackage 해시를 가진 통과 결과를 찾는다. 다른 곳에 저장한 경우 `$qaPath`를 직접 지정한다.
+
+```powershell
+git switch flood-road-scenarios
+git pull --ff-only origin flood-road-scenarios
+$python = '.\.venv\Scripts\python.exe'
+$existing = 'work/flood-road-scenarios-20261124-120849'
+$facility = 'local_inputs/shelters_final_147_verified.csv'
+$artifact = 'local_inputs/road_profile_artifacts'
+$gpkgHash = (Get-FileHash "$existing/road_scenarios.gpkg" -Algorithm SHA256).Hash
+$qaPath = Get-ChildItem 'work' -Directory -Filter 'flood-road-qa-*' |
+    Sort-Object Name -Descending |
+    ForEach-Object { Join-Path $_.FullName 'qa.json' } |
+    Where-Object {
+        if (Test-Path -LiteralPath $_ -PathType Leaf) {
+            $qa = Get-Content -LiteralPath $_ -Raw -Encoding UTF8 | ConvertFrom-Json
+            $qa.status -eq 'passed' -and $qa.run_gpkg_sha256 -eq $gpkgHash
+        }
+    } | Select-Object -First 1
+if (-not $qaPath) { throw '이 GeoPackage에 대응하는 독립 QA의 qa.json 경로를 지정하세요.' }
+
+$output = "work/facility-entrance-candidates-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+& $python -m scripts.build_facility_entrance_candidates --run $existing --scenario-qa $qaPath --facilities $facility --node-tags "$artifact/source_node_tags.json" --road-metadata "$artifact/metadata.json" --output $output
+if ($LASTEXITCODE -ne 0) { throw '진입점 후보 생성 또는 QA 실패' }
+Get-Content -LiteralPath "$output/entrance_candidate_qa.json" -Encoding UTF8
+Start-Process (Resolve-Path "$output/facility_entrance_review.html")
+```
+
+원본 프로필의 태그 파일을 확보하지 못한 경우 마지막 실행 명령에서 `--node-tags`와 `--road-metadata`를 함께 생략한다. 생성 폴더와 수동 확인 입력은 로컬에 보관한다.
