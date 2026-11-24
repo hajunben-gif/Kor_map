@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>부여·청양 침수 도로망</title>
+<style>@@LEAFLET_CSS@@</style>
+<style>@@VIEWER_CSS@@</style>
+</head>
+<body>
+<header class="page-head">
+  <div>
+    <h1>부여·청양 침수 도로망</h1>
+    <p>구호차량 후보 도로망 · 고정 시설 접속점</p>
+  </div>
+  <div class="scenarios" role="group" aria-label="침수 시나리오">
+    <button type="button" data-scenario="S0" aria-pressed="true"><strong>S0</strong> 기준망</button>
+    <button type="button" data-scenario="S1" aria-pressed="false"><strong>S1</strong> 0.5m 이상</button>
+    <button type="button" data-scenario="S2" aria-pressed="false"><strong>S2</strong> 전체 침수구역</button>
+  </div>
+</header>
+<section class="summary" aria-label="시나리오 통계">
+  <div><span>전체 시설</span><strong id="stat-facilities"></strong></div>
+  <div class="good"><span>개방 접속점</span><strong id="stat-open"></strong></div>
+  <div class="bad"><span>차단 접속점</span><strong id="stat-blocked"></strong></div>
+  <div><span>차단 물리 도로</span><strong id="stat-road"></strong></div>
+  <div><span>침수구역 면적</span><strong id="stat-area"></strong></div>
+  <div><span>최대 SCC 원본 노드</span><strong id="stat-scc"></strong></div>
+  <div><span>대표점 침수</span><strong id="stat-point"></strong></div>
+  <div><span>직선 접속선 침수 교차</span><strong id="stat-line"></strong></div>
+</section>
+<main class="workspace">
+  <aside class="panel query">
+    <div class="filters">
+      <div class="section-title"><h2>시설 조회</h2><span id="result-count" class="muted"></span></div>
+      <label>시설명 또는 ID<input type="search" id="search" placeholder="이름 · 시설 ID"></label>
+      <div class="filter-pair">
+        <label>시군<select id="county"><option value="">전체</option></select></label>
+        <label>접속 상태<select id="facility-state">
+          <option value="">전체</option><option value="open">개방</option>
+          <option value="blocked">차단</option><option value="review">검토</option>
+        </select></label>
+      </div>
+    </div>
+    <ol id="facility-list" aria-label="검색 결과"></ol>
+  </aside>
+  <section class="panel map-panel" aria-label="통합 지도">
+    <div class="map-head">
+      <h2 id="map-name">S0 기준망</h2>
+      <div><button id="basemap" type="button" aria-pressed="true">연결 취소</button>
+        <button id="extent" type="button">전체 지역</button></div>
+    </div>
+    <p id="basemap-status" role="status" hidden></p>
+    <div class="map-frame">
+      <div id="map" aria-label="침수구역, 도로망 및 시설 위치"></div>
+      <p id="map-message" role="status" hidden></p>
+    </div>
+    <div class="legend" aria-label="지도 범례">
+      <span><i class="stroke open"></i>개방 도로</span>
+      <span><i class="stroke blocked"></i>차단 도로</span>
+      <span><i class="stroke review"></i>교량·고가 검토</span>
+      <span><i class="area"></i>침수구역</span>
+      <span><i class="site"></i>대표점</span>
+      <span><i class="access"></i>접속점</span>
+      <span><i class="connector"></i>연구용 직선</span>
+      <span id="offline-legend" hidden><i class="county-line"></i>군 경계 <i class="major-road"></i>주요 도로</span>
+    </div>
+  </section>
+  <aside class="side">
+    <section class="panel layer-panel">
+      <div class="section-title"><h2>지도 레이어</h2></div>
+      <label class="type-label">도로 유형<select id="road-type"><option value="">전체</option></select></label>
+      <div class="checks">
+        <label><input id="layer-flood" type="checkbox" checked>침수구역</label>
+        <label><input id="layer-0" type="checkbox" checked>개방 도로</label>
+        <label><input id="layer-2" type="checkbox" checked>차단 도로</label>
+        <label><input id="layer-1" type="checkbox" checked>검토 도로</label>
+        <label><input id="layer-facility" type="checkbox" checked>시설 대표점</label>
+        <label><input id="layer-access" type="checkbox" checked>도로 접속점</label>
+        <label><input id="layer-connector" type="checkbox" checked>직선 접속선</label>
+      </div>
+      <p id="mask-notice" class="notice" hidden></p>
+    </section>
+    <section id="details" class="panel detail" aria-live="polite">
+      <h2>시설 상세</h2>
+      <p class="muted">지도나 목록에서 시설을 선택하세요.</p>
+    </section>
+  </aside>
+</main>
+<footer class="source">연구용 직선 접속선 · 실제 차량 진입 미확인 · 창고별 도달성은 후속 OD에서 평가
+  <span id="mask-source" hidden> · <a href="https://www.floodmap.go.kr/natreg/" target="_blank" rel="noopener noreferrer">홍수위험지도 출처</a></span>
+</footer>
+<script type="application/json" id="data">@@DATA@@</script>
+<script type="application/octet-stream" id="roads-S0">@@ROAD_S0@@</script>
+<script type="application/octet-stream" id="roads-S1">@@ROAD_S1@@</script>
+<script type="application/octet-stream" id="roads-S2">@@ROAD_S2@@</script>
+<script type="application/octet-stream" id="mask-S1">@@MASK_S1@@</script>
+<script type="application/octet-stream" id="mask-S2">@@MASK_S2@@</script>
+<script type="application/octet-stream" id="offline-basemap">@@BASEMAP_OFFLINE@@</script>
+<script>@@LEAFLET_JS@@
+</script>
+<script>@@BASEMAP_JS@@
+</script>
+<script>@@VIEWER_JS@@
+</script>
+</body>
+</html>
