@@ -244,7 +244,7 @@ def evaluate_facilities(graph, facilities, anchors):
         indices.append((keys, shapely.STRtree([graph.edges[k]['geometry'] for k in keys])))
     for identity, point in facilities:
         row = dict(identity)
-        for label, (keys, index) in zip(('nearest', 'connected'), indices):
+        for label, (keys, index) in zip(('nearest_open_road', 'reference_core_road'), indices):
             if keys:
                 options, distances = index.query_nearest(point, return_distance=True)
                 chosen = min(options, key=lambda i: keys[i])
@@ -387,18 +387,20 @@ def analyze(args, stage, masks, flood_qa):
                 baseline = evaluated
             for row, initial in zip(evaluated, baseline, strict=True):
                 row.update(profile=profile, scenario=scenario)
-                for label in ('nearest', 'connected'):
+                for label in ('nearest_open_road', 'reference_core_road'):
                     field = f'{label}_distance_m'
                     row[f'{label}_change_from_S0_m'] = (row[field] - initial[field]
                                                         if row[field] is not None and initial[field] is not None
                                                         else None)
-            stats['facilities_connected'] = sum(row['connected_distance_m'] is not None for row in evaluated)
+            reference_distance = 'reference_core_road_distance_m'
+            stats['facilities_with_reference_core_road'] = sum(
+                row[reference_distance] is not None for row in evaluated)
             for limit in (50, 100, 300):
-                stats[f'facilities_connected_within_{limit}_m'] = sum(
-                    row['connected_distance_m'] is not None and row['connected_distance_m'] <= limit
+                stats[f'facilities_with_reference_core_road_within_{limit}_m'] = sum(
+                    row[reference_distance] is not None and row[reference_distance] <= limit
                     for row in evaluated)
-            stats['facilities_without_connected_target_since_S0'] = sum(
-                row['connected_distance_m'] is None and initial['connected_distance_m'] is not None
+            stats['facilities_losing_reference_core_road_target_since_S0'] = sum(
+                row[reference_distance] is None and initial[reference_distance] is not None
                 for row, initial in zip(evaluated, baseline, strict=True))
             facility_rows.extend(evaluated)
             summary.append(dict(profile=profile, scenario=scenario, **stats))
@@ -451,13 +453,13 @@ def analyze(args, stage, masks, flood_qa):
         'S1은 N331~N334, S2는 N330~N334를 적용한다. 도로 길이는 EPSG:5186 평면 기준이다.',
         '교량·고가는 검토 상태로 남겨 계산에서 통과 가능으로 가정했다. 차량 통행 안전 판단에는 현장 확인이 필요하다.',
         '분할점은 방향별로 만들어 원래 도로 접점에서만 방향을 바꿀 수 있도록 했다. 연결요소는 분할 후 열린 방향 간선의 끝점을 기준으로 계산했다.',
-        '시설 좌표는 주소 대표점이다. 연결 거리는 기준 도로망의 도달 가능 도로까지의 직선거리이며 실제 진입로나 이동 거리는 별도로 확인해야 한다.',
-        '', '| 프로필 | 시나리오 | 차단 방향 간선 | 중복 제거 차단 km | WCC | SCC | 연결 후보 시설 |',
+        '시설 좌표는 주소 대표점이다. 기준망 도로 거리는 시나리오별 선택 SCC의 시설 접속 후보 도로까지의 직선거리다. 실제 진입로와 주행 거리는 별도로 확인해야 한다.',
+        '', '| 프로필 | 시나리오 | 차단 방향 간선 | 중복 제거 차단 km | WCC | SCC | 기준망 도로 거리 산출 시설 |',
         '|---|---|---:|---:|---:|---:|---:|',
     ]
     for row in summary:
         report.append('| {profile} | {scenario} | {blocked_directed_parent_edges} | {km:.3f} | '
-                      '{wcc_count} | {scc_count} | {facilities_connected} |'.format(
+                      '{wcc_count} | {scc_count} | {facilities_with_reference_core_road} |'.format(
                           **row, km=row['physical_blocked_m'] / 1000))
     (stage / 'report_ko.md').write_text('\n'.join(report) + '\n', encoding='utf-8')
     validation['code_sha256'] = {

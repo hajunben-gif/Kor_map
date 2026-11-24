@@ -1,6 +1,7 @@
 """Synthetic regressions for the flood-road CLI, linear overlay and topology."""
 import csv
 import json
+import math
 import tempfile
 import unittest
 from argparse import Namespace
@@ -12,7 +13,12 @@ import networkx as nx
 from shapely.geometry import LineString, Point, Polygon, box
 
 from scripts.build_flood_depth_scenarios_100y import load_codebook, write_geo_layers
-from scripts.build_flood_road_scenarios import Mask, ROOT, build, overlay, physical_summary, split_graph
+from scripts.build_flood_road_scenarios import (
+    Mask, ROOT, build, component_stats, evaluate_facilities, overlay, physical_summary, split_graph,
+)
+from scripts.connected_access_qa import active_reference_anchors, reference_core
+from scripts.prepare_flood_road_od import check_od, routing_view, to_entrance, write_od
+from scripts.qa_flood_road_scenarios import audit, check_nested, validate_scenario
 from scripts.flood_road_inputs import CODES, FACILITIES, PROFILES, SNAPSHOT, file_sha256, read_flood
 
 
@@ -59,6 +65,94 @@ class OverlayTests(unittest.TestCase):
         _, children, _ = split_graph(graph, measured, 'S2')
         self.assertEqual([(r['start_m'], r['end_m']) for r in children if r['state'] == 'blocked'],
                          [(2, 4), (16, 18)])
+
+
+class SavedScenarioQATests(unittest.TestCase):
+    def test_detects_reopened_physical_measure_with_same_total(self):
+        first = {(12, 0): (False, [(2, 4)])}
+        second = {(12, 0): (False, [(3, 5)])}
+        with self.assertRaisesRegex(ValueError, 'measure missing'):
+            check_nested(first, second)
+
+    def test_rejects_reversed_s0_geometry_and_blocked_bridge(self):
+        source = nx.MultiDiGraph(profile='synthetic')
+        add_edge(source, 1, 2, 'oneway', [(0, 0), (10, 0)], 12, bridge=True)
+        measured, _ = overlay(source, {'S1': Mask(box(2, -1, 4, 1))})
+        for scenario in ('S0', 'S1'):
+            result, trace, _ = split_graph(source, measured, scenario)
+            component_stats(result, set(source))
+            nodes = [dict(node_id=n, geometry=Point(d['x'], d['y']), wcc=d['wcc'], scc=d['scc'])
+                     for n, d in result.nodes(data=True)]
+            edges = [dict(d, u=u, v=v) for u, v, d in result.edges(data=True)]
+            validate_scenario(source, scenario, trace, nodes, edges)
+            if scenario == 'S0':
+                edges[0]['geometry'] = edges[0]['geometry'].reverse()
+                pattern = 'directed source interval'
+            else:
+                next(row for row in trace if row['state'] == 'review')['state'] = 'blocked'
+                pattern = 'structure review'
+            with self.assertRaisesRegex(ValueError, pattern):
+                validate_scenario(source, scenario, trace, nodes, edges)
+
+    def test_detects_shared_artificial_junction_before_export(self):
+        source = nx.MultiDiGraph(profile='synthetic')
+        add_edge(source, 1, 2, 'forward', [(0, 0), (10, 0)], 12)
+        add_edge(source, 2, 1, 'reverse', [(10, 0), (0, 0)], 12)
+        measured, _ = overlay(source, {'S1': Mask(box(2, -1, 4, 1))})
+        result, trace, _ = split_graph(source, measured, 'S1')
+        component_stats(result, set(source))
+        nodes = [dict(node_id=n, geometry=Point(d['x'], d['y']), wcc=d['wcc'], scc=d['scc'])
+                 for n, d in result.nodes(data=True)]
+        edges = [dict(d, u=u, v=v) for u, v, d in result.edges(data=True)]
+        validate_scenario(source, 'S1', trace, nodes, edges)
+        reversed_rows = [r for r in trace if r['edge_uid'] == 'reverse']
+        reversed_rows[0]['v'] = trace[0]['v']
+        reversed_rows[1]['u'] = trace[0]['v']
+        with self.assertRaisesRegex(ValueError, 'shared artificial junction'):
+            validate_scenario(source, 'S1', trace, nodes, edges)
+
+    def test_scc_switch_shortens_proximity_but_cannot_shorten_fixed_od(self):
+        source = nx.MultiDiGraph(profile='synthetic')
+        for u, v, way in [(1, 2, 10), (2, 3, 11), (3, 4, 12), (4, 5, 13)]:
+            for first, last in ((u, v), (v, u)):
+                add_edge(source, first, last, f'{first}-{last}',
+                         [(10 * first, 0), (10 * last, 0)], way)
+        anchors, _ = reference_core(source)
+        masks = {'S1': Mask(box(33, -1, 37, 1)), 'S2': Mask(box(23, -1, 37, 1).union(box(13, -1, 17, 1)))}
+        measured, _ = overlay(source, masks)
+        first, second = (split_graph(source, measured, s)[0] for s in ('S1', 'S2'))
+        self.assertEqual(active_reference_anchors(first, anchors)[0], {1, 2, 3})
+        self.assertEqual(active_reference_anchors(second, anchors)[0], {4, 5})
+        for graph in (first, second):
+            component_stats(graph, set(source))
+        facility = [({}, Point(45, 0))]
+        field = 'reference_core_road_distance_m'
+        self.assertGreater(next(evaluate_facilities(first, facility, anchors))[field],
+                           next(evaluate_facilities(second, facility, anchors))[field])
+        before = to_entrance(first, 3)[1]
+        after = to_entrance(second, 3).get(1, math.inf)
+        self.assertTrue(math.isinf(after))
+        check_od(before, after, 1, 3)
+        with self.assertRaisesRegex(ValueError, 'Shorter S2 OD'):
+            check_od(after, before, 1, 3)
+
+    def test_od_preserves_one_way_and_unknown_entrance(self):
+        graph = nx.MultiDiGraph()
+        graph.add_edge(1, 2, length_m=10, state='open')
+        graph.add_edge(2, 3, length_m=20, state='review')
+        self.assertEqual(to_entrance(graph, 1), {})
+        self.assertEqual(to_entrance(routing_view(graph, 'open'), 3)[1], 30)
+        closed = routing_view(graph, 'closed')
+        self.assertEqual(to_entrance(closed, 3), {})
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp)
+            write_od(output, [1], {('county', '1'): (3, 'checked'),
+                                   ('county', '2'): (None, '')},
+                     {'S0': graph, 'S1': graph, 'S2': closed})
+            with (output / 'unreachable_counts.csv').open(encoding='utf-8-sig') as stream:
+                counts = list(csv.DictReader(stream))
+            self.assertEqual([row['unreachable_count'] for row in counts], ['0', '0', '1'])
+            self.assertEqual([row['entrance_unverified_count'] for row in counts], ['1'] * 3)
 
 
 class PipelineTests(unittest.TestCase):
@@ -117,6 +211,20 @@ class PipelineTests(unittest.TestCase):
             (args.road_artifact / 'metadata.json').rename(args.road_metadata)
             with patch.dict(PROFILES, {p: (2, 2) for p in PROFILES}):
                 build(args)
+                args.run = args.output
+                report = audit(args)
+                comparison = args.run / 'facility_access_comparison.csv'
+                content = comparison.read_text(encoding='utf-8-sig')
+                content = content.replace('reference_core_road_', 'connected_').replace('nearest_open_road_', 'nearest_')
+                comparison.write_text(content, encoding='utf-8-sig')
+                validation = args.run / 'validation.json'
+                manifest = json.loads(validation.read_bytes())
+                manifest['output_sha256'][comparison.name] = file_sha256(comparison)
+                validation.write_text(json.dumps(manifest))
+                self.assertEqual(audit(args), report)
+            self.assertEqual(report['status'], 'passed')
+            stats = report['profiles']['relief_vehicle_candidate']['scenarios']['S2']
+            self.assertAlmostEqual(stats['physical_blocked_m'], 50, places=5)
             with (args.output / 'scenario_comparison.csv').open(encoding='utf-8-sig') as stream:
                 rows = list(csv.DictReader(stream))
             self.assertEqual(len(rows), 9)
