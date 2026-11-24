@@ -63,6 +63,53 @@ Start-Process (Resolve-Path (Join-Path $output 'START_HERE.html')).Path
 
 다른 곳에 독립 QA를 저장했다면 `$roadQA`에 해당 `qa.json`을 지정한다. 빌더는 `$run`과 같은 상위 폴더에서 `final-facility-access-*`를 최신 이름부터 검사한다. `passed` 상태, CSV 4개의 존재 여부와 해시, 수동 검토 CSV를 포함한 입력 해시, 고정 좌표와 실제 CSV 집계를 통과한 폴더를 선택한다. 특정 폴더를 쓰려면 `--final-run '경로'`를 추가한다. S0 내보내기 사본을 사용한 최종 QA는 기존 투영 요약의 사본 해시로, 전체 GeoPackage를 사용한 최종 QA는 현재 시나리오 GeoPackage의 해시로 대조한다. 선택한 폴더와 제외 사유는 `SHARE_METADATA.json`에 기록한다.
 
+### 기존 Windows 체크아웃의 행정경계 복구
+
+`SHA-256 mismatch: boundary.geojson`이 발생하면 `core.autocrlf=true`인 체크아웃의 줄바꿈을 확인한다. 경계 두 파일의 Git 원본은 LF이며 `output/integrated_area/boundaries_20261113/validation.json`의 `sources` 해시와 일치한다. 기존 체크아웃에서는 줄바꿈이 CRLF인 사본이 남을 수 있다. 아래 명령은 스테이징된 변경이나 줄바꿈 외의 편집이 있으면 중단한다. 이후 두 작업 파일을 임시 폴더에 백업하고 인덱스에서 해당 파일만 다시 꺼낸 뒤, 실제 바이트의 SHA-256을 기존 QA와 대조한다.
+
+```powershell
+$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath 'C:\Users\user\Documents\Kor_map'
+git switch team-share-visualization
+if ($LASTEXITCODE -ne 0) { throw '팀 공유 브랜치 전환 실패' }
+git pull --ff-only origin team-share-visualization
+if ($LASTEXITCODE -ne 0) { throw '팀 공유 브랜치 업데이트 실패' }
+
+$archive = 'data/20261109T045434949410Z'
+$counties = @('buyeo', 'cheongyang')
+$paths = @($counties | ForEach-Object { "$archive/$_/boundary.geojson" })
+$attributes = @(git check-attr text -- $paths)
+if ($LASTEXITCODE -ne 0 -or $attributes.Count -ne $paths.Count -or
+    ($attributes | Where-Object { $_ -notlike '*: text: unset' })) {
+    throw '두 경계에 -text 속성이 적용됐는지 확인하세요.'
+}
+git diff --cached --quiet -- $paths
+if ($LASTEXITCODE -ne 0) { throw '스테이징된 경계 변경을 먼저 확인하세요.' }
+git diff --no-ext-diff --no-textconv --ignore-cr-at-eol --exit-code HEAD -- $paths
+if ($LASTEXITCODE -ne 0) { throw '줄바꿈 외의 경계 변경을 먼저 확인하세요.' }
+
+$backup = Join-Path ([IO.Path]::GetTempPath()) ('Kor_map-boundaries-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $backup | Out-Null
+foreach ($county in $counties) {
+    Copy-Item -LiteralPath "$archive/$county/boundary.geojson" -Destination (Join-Path $backup "$county.geojson")
+}
+Write-Output "복구 전 사본 $backup"
+git checkout-index --force -- $paths
+if ($LASTEXITCODE -ne 0) { throw '행정경계 복구 실패' }
+
+$qa = Get-Content -LiteralPath 'output/integrated_area/boundaries_20261113/validation.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+foreach ($county in $counties) {
+    $path = "$archive/$county/boundary.geojson"
+    $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+    if ($hash -ne $qa.sources.$county.sha256) { throw "기존 QA 해시 불일치 $path" }
+    Write-Output "$county $hash"
+}
+```
+
+두 해시가 일치하면 위의 패키지 생성 명령을 다시 실행한다. `git ls-files --eol -- $paths`로 확인할 때 두 파일에 `i/lf w/lf attr/-text`가 표시된다.
+
+같은 설정에서 원본 통합망 빌드의 `output/integrated_area/boundaries_20261113/buffer_2000m_epsg5179.geojson`과 저장소의 `data/processed/shelters_final_147.csv`도 CRLF로 바뀌면 검증 해시가 달라진다. 팀 공유 패키지는 버퍼 파일을 읽지 않으며, 위 명령에서 시설 입력은 `local_inputs/shelters_final_147_verified.csv`를 사용한다. 기존 시나리오·시설 산출물과 압축을 푼 도로 아티팩트는 검증된 바이트 그대로 사용한다.
+
 ## 지도와 ZIP
 
 - `START_HERE.html`은 전체 로컬 지도다. 최신 Windows Edge 또는 Chrome에서 더블클릭해 연다. Leaflet 1.9.4와 지도 데이터가 파일 안에 들어 있으며, 브라우저의 gzip `DecompressionStream`을 사용한다.
